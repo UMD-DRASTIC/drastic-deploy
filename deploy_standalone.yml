@@ -1,0 +1,8 @@
+---
+# This playbook deploys/installs an alloy master
+
+- name: install cassandra
+  user: vagrant
+  hosts: demo
+  roles:
+    - cassandra
