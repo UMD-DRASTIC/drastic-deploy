@@ -1,0 +1,107 @@
+---
+##############################################################################
+# System initialisation
+# Install all of the required apt packages
+##############################################################################
+- name: update apt-cache
+  sudo: true
+  apt: update_cache=yes
+
+- name: install packages for indigo web-ui
+  apt: pkg={{ item }} state=installed
+  with_items:
+    - build-essential
+    - nginx
+    - libpq5
+    - git
+    - htop
+    - iotop
+    - vim
+    - python-pip
+    - python-virtualenv
+    - postgresql-9.3
+    - postgresql-server-dev-9.3
+  sudo: true
+
+# Create /var/www/.python-eggs
+- name: Assures /var/www/.python-eggs dir exists
+  file: path=/var/www/.python-eggs state=directory owner=www-data
+
+#- name: Assures /usr/lib/indigo/web/project/static dir exists
+#  file: path=/usr/lib/indigo/web/project/static state=directory
+# Make writable
+# /usr/lib/indigo/web/project/static
+
+##############################################################################
+# Create the virtualenv where we will host the indigo-web app
+##############################################################################
+- name: Manually create the webapp virtualenv
+  command: virtualenv /usr/lib/indigo/web creates="/usr/lib/indigo/web"
+  sudo: true
+
+
+- git: repo=https://{{ bb_user }}:{{ bb_pass }}@bitbucket.org/archivea/indigo-web.git
+       dest=/usr/lib/indigo/web/project
+       accept_hostkey=yes
+  sudo: true
+
+- name: Install requirements
+  pip:
+    requirements=/usr/lib/indigo/web/project/requirements.txt
+    virtualenv=/usr/lib/indigo/web
+  sudo: true
+
+- git: repo=https://{{ bb_user }}:{{ bb_pass }}@bitbucket.org/archivea/indigo.git
+       dest=/usr/lib/indigo/indigo
+  sudo: true
+
+- name: Install indigo lib into webapp
+  shell: "/usr/lib/indigo/web/bin/python setup.py develop"
+  args:
+    chdir: /usr/lib/indigo/indigo
+  sudo: true
+
+- name: "Copy init script"
+  copy: src=templates/indigo-web.conf dest=/etc/init/indigo-web.conf
+  sudo: true
+
+- name: "Copy nginx config"
+  copy: src=templates/indigo-web.nginx dest=/etc/nginx/sites-enabled/default
+  sudo: true
+
+- name: Collect static
+  command: /usr/lib/indigo/web/bin/python2.7 /usr/lib/indigo/web/project/manage.py collectstatic --noinput
+  sudo: true
+
+- service: name=nginx state=restarted
+
+##############################################################################
+# Create the virtualenv where we will host the indigo-agent app
+##############################################################################
+- name: Manually create the agent virtualenv
+  command: virtualenv /usr/lib/indigo/agent creates="/usr/lib/indigo/agent"
+  sudo: true
+
+- git: repo=https://{{ bb_user }}:{{ bb_pass }}@bitbucket.org/archivea/indigo-agent.git
+       dest=/usr/lib/indigo/agent/project
+       accept_hostkey=yes
+  sudo: true
+
+- name: Install indigo agent into venv
+  shell: "/usr/lib/indigo/agent/bin/python setup.py develop"
+  args:
+    chdir: /usr/lib/indigo/agent/project
+  sudo: true
+
+
+- name: Install indigo lib into agent
+  shell: "/usr/lib/indigo/agent/bin/python setup.py develop"
+  args:
+    chdir: /usr/lib/indigo/indigo
+  sudo: true
+
+- name: "Copy init script"
+  copy: src=templates/indigo-agent.conf dest=/etc/init/indigo-agent.conf
+  sudo: true
+
+- service: name=indigo-agent state=started
