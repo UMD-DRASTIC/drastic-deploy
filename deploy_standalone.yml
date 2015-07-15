@@ -3,8 +3,9 @@
 
 - name: install cassandra
   user: vagrant
-  hosts: demo
+  hosts: indigo
   roles:
+    - cassandra 
     - indigo-node
   vars_prompt:
    - name: "bb_user"
