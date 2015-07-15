@@ -1,8 +1,14 @@
 ---
-# This playbook deploys/installs an alloy master
+# This playbook deploys/installs a single node of the Indigo system
 
 - name: install cassandra
   user: vagrant
   hosts: demo
   roles:
-    - cassandra
+    - indigo-node
+  vars_prompt:
+   - name: "bb_user"
+     prompt: "Bitbucket Username"
+   - name: "bb_pass"
+     prompt: "Bitbucket Password"
+     private: yes
