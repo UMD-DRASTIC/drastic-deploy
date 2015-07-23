@@ -44,7 +44,7 @@
   sudo: yes
 
 - name: Install cassandra
-  apt: pkg=dsc21 state=installed update_cache=yes force=yes
+  apt: pkg=dsc22 state=installed update_cache=yes force=yes
   sudo: yes
 
 
@@ -70,4 +70,20 @@
   args:
     chdir: /tmp/ccm
 
+- name: Start Cassandra
+  shell: service cassandra start
+  sudo: yes
 
+
+##############################################################################
+# Cassandra Configuration
+# Installs the configuration files for this Cassandra cluster
+##############################################################################
+
+#- name: "Copy Cassandra YAML"
+#  copy: src=templates/cassandra.yaml dest=/etc/cassandra/cassandra.yaml
+#  sudo: true
+
+#- name: "Copy Cassandra Topology"
+#  copy: src=templates/cassandra-topology.properties dest=/etc/cassandra/cassandra-topology.properties
+#  sudo: true

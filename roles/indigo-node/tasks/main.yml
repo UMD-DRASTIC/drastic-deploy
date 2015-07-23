@@ -19,13 +19,12 @@
     - vim
     - python-pip
     - python-virtualenv
-    - postgresql-9.3
-    - postgresql-server-dev-9.3
   sudo: true
 
 # Create /var/www/.python-eggs
 - name: Assures /var/www/.python-eggs dir exists
   file: path=/var/www/.python-eggs state=directory owner=www-data
+  sudo: true
 
 #- name: Assures /usr/lib/indigo/web/project/static dir exists
 #  file: path=/usr/lib/indigo/web/project/static state=directory
@@ -69,10 +68,16 @@
   copy: src=templates/indigo-web.nginx dest=/etc/nginx/sites-enabled/default
   sudo: true
 
+- name: Create the cassandra database
+  command: /usr/lib/indigo/web/bin/indigo create
+  sudo: true
+
+
 - name: Collect static
   command: /usr/lib/indigo/web/bin/python2.7 /usr/lib/indigo/web/project/manage.py collectstatic --noinput
   sudo: true
 
+- service: name=indigo-web state=started
 - service: name=nginx state=restarted
 
 ##############################################################################

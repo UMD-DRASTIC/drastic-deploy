@@ -1,11 +1,11 @@
 ---
 # This playbook deploys/installs a single node of the Indigo system
 
-- name: install cassandra
-  user: vagrant
+- name: install indigo node
+  user: indigo
   hosts: indigo
   roles:
-    - cassandra 
+    - cassandra
     - indigo-node
   vars_prompt:
    - name: "bb_user"
