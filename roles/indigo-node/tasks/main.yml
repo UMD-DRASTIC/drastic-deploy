@@ -3,6 +3,10 @@
 # System initialisation
 # Install all of the required apt packages
 ##############################################################################
+- debug: msg="Waiting 1 minute for Cassandra to start - yes - really"
+
+- pause: minutes=1
+
 - name: update apt-cache
   sudo: true
   apt: update_cache=yes
@@ -74,11 +78,11 @@
 
 
 - name: Collect static
-  command: /usr/lib/indigo/web/bin/python2.7 /usr/lib/indigo/web/project/manage.py collectstatic --noinput
+  command: /usr/lib/indigo/web/bin/python /usr/lib/indigo/web/project/manage.py collectstatic --noinput
   sudo: true
 
-- service: name=indigo-web state=started
 - service: name=nginx state=restarted
+  sudo: true
 
 ##############################################################################
 # Create the virtualenv where we will host the indigo-agent app
@@ -108,5 +112,3 @@
 - name: "Copy init script"
   copy: src=templates/indigo-agent.conf dest=/etc/init/indigo-agent.conf
   sudo: true
-
-- service: name=indigo-agent state=started
