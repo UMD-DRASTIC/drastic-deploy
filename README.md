@@ -1,6 +1,7 @@
 # Indigo Deployment 
 
 The following steps describe how to deploy Indigo to a remote (or local) server.
+[[[ **note:   How is the deployment to _multiple_ servers or, the addition of a server achieved?** ] 
 
 
 #### Access 
