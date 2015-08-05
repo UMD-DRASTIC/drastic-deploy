@@ -7,6 +7,20 @@ The following steps describe how to deploy Indigo to a remote (or local) server.
 
 * Make sure you have access to the server via SSH, either directly or via a proxy.
 
+#### Pre-requisites
+
+-- Install Ansible and GIT
+
+``` 
+sudo apt-get install software-properties-common
+sudo apt-add-repository ppa:ansible/ansible
+sudo apt-get update
+sudo apt-get install ansible git
+```
+-- Fetch _this_ package 
+```
+git clone <URL copied from above> 
+```
 
 #### Configuration
 
