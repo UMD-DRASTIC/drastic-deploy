@@ -59,4 +59,21 @@ On some occasions the indigo-node fails to start after installation.  This is be
 on the target machine if the web-service fails to work. **
 
 ### Post install tasks
-Create Users 
+Create Users
+
+See this [LINK](https://bitbucket.org/archivea/indigo) for full details, but the short version is 
+```
+ssh indigo@<target>
+export INDIGO_CONFIG=settings
+. /usr/lib/indigo/agent/bin/activate
+indigo create-user
+```
+If you get an error on logging in then on the target machine
+```
+deactivate
+. /usr/lib/indigo/web/bin/activate
+cd /usr/lib/indigo/web/project
+sudo ../bin/python manage.py syncdb
+
+And just choose No if it asks any questions...
+```
