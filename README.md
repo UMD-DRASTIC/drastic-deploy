@@ -53,4 +53,10 @@ ansible-playbook deploy_standalone.yml -i hosts --ask-sudo-pass
 
 Unfortunately Cassandra can take a while to start. The process list will show the Java process running although Cassandra is still not available. To resolve this the script pauses once the Cassandra installation is complete. 
 
-On some occasions the indigo-node fails to start after installation.  This is being investigated.
+On some occasions the indigo-node fails to start after installation.  This is being investigated. 
+** As a temporary workaround execute 
+```sudo service indigo-web start``` 
+on the target machine if the web-service fails to work. **
+
+### Post install tasks
+Create Users 
