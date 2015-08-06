@@ -66,7 +66,7 @@ See this [LINK](https://bitbucket.org/archivea/indigo) for full details, but the
 ssh indigo@<target>
 export INDIGO_CONFIG=settings
 . /usr/lib/indigo/agent/bin/activate
-indigo create-user
+indigo user-create
 ```
 If you get an error on logging in then on the target machine
 ```
