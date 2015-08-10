@@ -27,6 +27,13 @@ git clone <URL copied from above>
 
 * By default the user account on the server should be 'indigo' who should have sudo access.  If different then the user field in deploy-standalone.yml should be changed.
 
+* Cassandra stores it data by default in /var/lib/cassandra -- this should be redirected to an appropriate storage volume, either via a symbolic link or using something like
+```
+mkdir /var/lib/cassandra
+mount --bind <target> /var/lib/cassandra 
+# Ensure that permissions and ownership are appropriately set
+```
+
 * Create a ```hosts``` file containing the IP address of the servers.  It should look like..
 
 ```
