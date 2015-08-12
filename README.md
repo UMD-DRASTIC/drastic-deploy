@@ -76,6 +76,8 @@ ssh indigo@<target>
 export INDIGO_CONFIG=settings
 . /usr/lib/indigo/agent/bin/activate
 indigo user-create
+# and you probably want to create a group or two .... especially since you need to for ingesting
+indigo group_create <group_name>  <user_name_that_owns_group>
 ```
 If you get an error on logging in then on the target machine
 ```
