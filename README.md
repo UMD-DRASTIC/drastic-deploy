@@ -30,8 +30,10 @@ git clone <URL copied from above>
 * Cassandra stores it data by default in /var/lib/cassandra -- this should be redirected to an appropriate storage volume, either via a symbolic link or using something like
 ```
 mkdir /var/lib/cassandra
-mount --bind <target> /var/lib/cassandra 
+mount --bind <target> /var/lib/cassandra
+mkdir /var/lib/cassandra/data 
 # Ensure that permissions and ownership are appropriately set
+chown -R casssandra:cassandra /var/lib/cassandra
 ```
 
 * Create a ```hosts``` file containing the IP address of the servers.  It should look like..
