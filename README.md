@@ -96,9 +96,9 @@ And just choose No if it asks any questions...
 
 The file /etc/init/indigo-agent needs to have these lines ( the last one should be there, the first two may not ). 
 ```
-ject
+ 
 env CQLENG_ALLOW_SCHEMA_MANAGEMENT=1
 env AGENT_CONFIG=/usr/lib/indigo/agent/project/agent.config
 
-exec /usr/lib/indigo/agent/bin/python /usr/lib/indigo/agent/project/ws
+exec /usr/lib/indigo/agent/bin/python /usr/lib/indigo/agent/project/wsgi....
 ```
