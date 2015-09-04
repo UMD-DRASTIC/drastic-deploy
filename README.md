@@ -35,6 +35,9 @@ mkdir /var/lib/cassandra/data
 # Ensure that permissions and ownership are appropriately set
 chown -R casssandra:cassandra /var/lib/cassandra
 ```
+* Precaution:  If you are re-installing then it is probably worth doing a complete removal of cassandra 
+e.g.
+``` sudo apt-get purge cassandra ```
 
 * Create a ```hosts``` file containing the IP address of the servers.  It should look like..
 
