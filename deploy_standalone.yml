@@ -1,15 +1,37 @@
 ---
 # This playbook deploys/installs a single node of the Indigo system
 
-- name: install indigo node
-  user: indigo
+- name: Install indigo node
+  remote_user: indigo
   hosts: indigo
+
   roles:
     - cassandra
-    - indigo-node
+    - indigo-agent
+    - indigo-web
+
+  # I don't like this because it puts my username and password into requirements.txt that persist on the server...
+  # At best we should delete requirements.txt, but it might be better to download requirements.txt locally and feed
+  # each row into Ansible.
   vars_prompt:
    - name: "bb_user"
      prompt: "Bitbucket Username"
+
    - name: "bb_pass"
      prompt: "Bitbucket Password"
      private: yes
+
+
+# Ignore all this, just notes to myself (JD) about what needs to be done with Ansible.
+#export INDIGO_CONFIG=settings
+#export CQLENG_ALLOW_SCHEMA_MANAGEMENT=1
+#
+#In web venv:
+#sudo ../bin/python manage.py syncdb
+#
+#chmod 0666 db.sqlite3
+#
+#indigo user-create
+#indigo group-create
+#
+#sudo service indigo-web start

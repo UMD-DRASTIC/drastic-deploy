@@ -1,1 +1,7 @@
 hosts
+
+# IntelliJ
+.idea/
+
+# Vagrant
+.vagrant/
