@@ -3,30 +3,26 @@
 # Create the virtualenv where we will host the indigo-agent app
 ##############################################################################
 - name: update apt-cache
-  sudo: true
   apt: update_cache=yes
+  sudo: yes
 
 - name: Manually create the agent virtualenv
-  command: virtualenv /usr/lib/indigo/agent creates="/usr/lib/indigo/agent"
-  sudo: true
+  command: virtualenv "{{ install_dir }}/agent" creates="{{ install_dir }}/agent"
 
-- git: repo=https://{{ bb_user }}:{{ bb_pass }}@bitbucket.org/archivea/indigo-agent.git
-       dest=/usr/lib/indigo/agent/project
+- git: repo="https://{{ bb_user }}:{{ bb_pass }}@bitbucket.org/archivea/indigo-agent.git"
+       dest="{{ install_dir }}/agent/project"
        accept_hostkey=yes
-  sudo: true
 
 - name: Install indigo agent into venv
-  shell: "/usr/lib/indigo/agent/bin/python setup.py develop"
+  shell: "{{ install_dir }}/agent/bin/python setup.py develop"
   args:
-    chdir: /usr/lib/indigo/agent/project
-  sudo: true
+    chdir: "{{ install_dir }}/agent/project"
 
 - name: Install indigo lib into agent
-  shell: "/usr/lib/indigo/agent/bin/python setup.py develop"
+  shell: "{{ install_dir }}/agent/bin/python setup.py develop"
   args:
-    chdir: /usr/lib/indigo/indigo
-  sudo: true
+    chdir: "{{ install_dir }}/indigo"
 
 - name: "Copy init script"
   template: src=indigo-agent.conf dest=/etc/init/indigo-agent.conf
-  sudo: true
+  sudo: yes

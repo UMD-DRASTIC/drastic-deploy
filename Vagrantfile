@@ -26,9 +26,10 @@ Vagrant.configure(2) do |config|
 
   config.vm.provision "ansible" do |ansible|
     ansible.playbook = "deploy_standalone.yml"
-    ansible.ask_sudo_pass = true
+#    ansible.ask_sudo_pass = true
     ansible.extra_vars = {
-      ansible_ssh_user: "vagrant"
+      ansible_ssh_user: "vagrant",
+      install_dir: "/home/vagrant/"
     }
   end
 end

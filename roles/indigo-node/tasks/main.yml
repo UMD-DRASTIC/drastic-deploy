@@ -32,6 +32,5 @@
   file: path=/var/www/.python-eggs state=directory owner=www-data
   sudo: true
 
-- git: repo=https://{{ bb_user }}:{{ bb_pass }}@bitbucket.org/archivea/indigo.git
-       dest=/usr/lib/indigo/indigo
-  sudo: true
+- git: repo="https://{{ bb_user }}:{{ bb_pass }}@bitbucket.org/archivea/indigo.git"
+       dest="{{ install_dir }}/indigo"

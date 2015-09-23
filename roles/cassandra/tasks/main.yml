@@ -4,8 +4,8 @@
 # This must be Oracle's Java, and also should use libjna for performance.
 ##############################################################################
 - name: Installation dependencies
-  sudo: yes
   apt: pkg=python-apt state=installed update_cache=yes force=yes
+  sudo: yes
 
 - name: Add PPA for Oracle Java 8
   apt_repository: repo='ppa:webupd8team/java' state=present

@@ -10,12 +10,12 @@ server {
 
     location /static {
         autoindex on;
-        alias /usr/lib/indigo/web/project/static/;
+        alias {{ install_dir }}/web/project/static/;
     }
 
     location /media {
         autoindex on;
-        alias /usr/lib/indigo/web/project/media/;
+        alias {{ install_dir }}/web/project/media/;
     }
 
     location / {

@@ -11,7 +11,7 @@
     - indigo-web
 
   # I don't like this because it puts my username and password into requirements.txt that persist on the server...
-  # At best we should delete requirements.txt, but it might be better to download requirements.txt locally and feed
+  # At least we should delete requirements.txt, but it might be better to download requirements.txt locally and feed
   # each row into Ansible.
   vars_prompt:
    - name: "bb_user"
@@ -25,12 +25,11 @@
 # Ignore all this, just notes to myself (JD) about what needs to be done with Ansible.
 #export INDIGO_CONFIG=settings
 #export CQLENG_ALLOW_SCHEMA_MANAGEMENT=1
+#export AGENT_CONFIG=/home/vagrant/agent/project/agent.config
 #
 #In web venv:
 #sudo ../bin/python manage.py syncdb
-#
-#chmod 0666 db.sqlite3
-#
+#indigo
 #indigo user-create
 #indigo group-create
 #
