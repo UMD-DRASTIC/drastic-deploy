@@ -77,7 +77,7 @@
 
 # This will restart Cassandra only if the configuration file has changed. See handlers/main.yaml
 - name: Copy Cassandra configuration file
-  template: src=templates/cassandra.yaml dest=/etc/cassandra/cassandra.yaml
+  template: src=cassandra.yaml dest=/etc/cassandra/cassandra.yaml
   notify:
     - Restart Cassandra
   sudo: yes
