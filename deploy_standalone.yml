@@ -6,9 +6,9 @@
   hosts: indigo
 
   roles:
-#    - cassandra
+    - cassandra
     - indigo-agent
-#    - indigo-web
+    - indigo-web
 
   # I don't like this because it puts my username and password into requirements.txt that persist on the server...
   # At least we should delete requirements.txt, but it might be better to download requirements.txt locally and feed
@@ -20,17 +20,3 @@
    - name: "bb_pass"
      prompt: "Bitbucket Password"
      private: yes
-
-
-# Ignore all this, just notes to myself (JD) about what needs to be done with Ansible.
-#export INDIGO_CONFIG=settings
-#export CQLENG_ALLOW_SCHEMA_MANAGEMENT=1
-#export AGENT_CONFIG=/home/vagrant/agent/project/agent.config
-#
-#In web venv:
-#sudo ../bin/python manage.py syncdb
-#indigo
-#indigo user-create
-#indigo group-create
-#
-#sudo service indigo-web start
