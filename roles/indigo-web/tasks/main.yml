@@ -59,12 +59,12 @@
 - name: Set up database
   command: "{{ install_dir }}/web/bin/python {{ install_dir }}/web/bin/indigo create"
 
-- name: Create default admin user
-  script: init_user.expect "{{ install_dir }}"
+- name: Create default user
+  script: init_user.expect "{{ install_dir }} {{ default_user_name }} {{ default_password }}"
   ignore_errors: yes
 
 - name: Create default group
-  command: "{{ install_dir }}/web/bin/python {{ install_dir }}/web/bin/indigo group-create default admin"
+  command: "{{ install_dir }}/web/bin/python {{ install_dir }}/web/bin/indigo group-create {{ default_group }} {{ default_user_name }}"
 
 - name: Start nginx
   service: name=nginx state=restarted

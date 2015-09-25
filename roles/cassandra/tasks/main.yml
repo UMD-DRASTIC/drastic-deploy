@@ -70,20 +70,22 @@
   args:
     chdir: /tmp/ccm
 
-- name: Start Cassandra
-  shell: service cassandra start
-  sudo: yes
-
-
 ##############################################################################
 # Cassandra Configuration
 # Installs the configuration files for this Cassandra cluster
 ##############################################################################
 
-#- name: "Copy Cassandra YAML"
-#  copy: src=templates/cassandra.yaml dest=/etc/cassandra/cassandra.yaml
-#  sudo: true
+# This will restart Cassandra only if the configuration file has changed. See handlers/main.yaml
+- name: Copy Cassandra configuration file
+  template: src=templates/cassandra.yaml dest=/etc/cassandra/cassandra.yaml
+  notify:
+    - Restart Cassandra
+  sudo: yes
 
 #- name: "Copy Cassandra Topology"
 #  copy: src=templates/cassandra-topology.properties dest=/etc/cassandra/cassandra-topology.properties
 #  sudo: true
+
+- name: Start Cassandra
+  service: name=cassandra state=running
+  sudo: yes
