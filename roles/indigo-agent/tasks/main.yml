@@ -9,9 +9,12 @@
 - name: Manually create the agent virtualenv
   command: virtualenv "{{ install_dir }}/agent" creates="{{ install_dir }}/agent"
 
-- git: repo="https://{{ bb_user }}:{{ bb_pass }}@bitbucket.org/archivea/indigo-agent.git"
+- name: Clone git repo
+  git: repo="git@bitbucket.org:archivea/indigo-agent.git"
        dest="{{ install_dir }}/agent/project"
+       key_file="{{ install_dir }}/.ssh/indigo_deployment_private_key"
        accept_hostkey=yes
+       force=yes
 
 - name: Install indigo agent into venv
   shell: "{{ install_dir }}/agent/bin/python setup.py develop"

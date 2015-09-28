@@ -5,18 +5,11 @@
   remote_user: indigo
   hosts: indigo
 
+  pre_tasks:
+    - name: Copy bitbucket deployment key to the server.
+      copy: src=files/indigo_deployment_private_key dest="{{ install_dir }}/.ssh/indigo_deployment_private_key" mode=0600
+
   roles:
     - cassandra
     - indigo-agent
     - indigo-web
-
-  # I don't like this because it puts my username and password into requirements.txt that persist on the server...
-  # At least we should delete requirements.txt, but it might be better to download requirements.txt locally and feed
-  # each row into Ansible.
-  vars_prompt:
-   - name: "bb_user"
-     prompt: "Bitbucket Username"
-
-   - name: "bb_pass"
-     prompt: "Bitbucket Password"
-     private: yes

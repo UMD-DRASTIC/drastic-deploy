@@ -25,9 +25,12 @@
 - name: Manually create the webapp virtualenv
   command: virtualenv "{{ install_dir }}/web" creates="{{ install_dir }}/web"
 
-- git: repo="https://{{ bb_user }}:{{ bb_pass }}@bitbucket.org/archivea/indigo-web.git"
+- name: Clone git repo
+  git: repo="git@bitbucket.org:archivea/indigo-web.git"
        dest="{{ install_dir }}/web/project"
+       key_file="{{ install_dir }}/.ssh/indigo_deployment_private_key"
        accept_hostkey=yes
+       force=yes
 
 - name: Install requirements
   pip:
