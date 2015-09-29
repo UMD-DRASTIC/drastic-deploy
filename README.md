@@ -102,7 +102,7 @@ See this [LINK](https://bitbucket.org/archivea/indigo) for full details, but the
 ```
 ssh indigo@<target>
 export INDIGO_CONFIG=settings
-. /usr/lib/indigo/agent/bin/activate
+. /usr/lib/indigo/web/bin/activate
 indigo user-create
 # and you probably want to create a group or two .... especially since you need to for ingesting
 indigo group_create <group_name>  <user_name_that_owns_group>
