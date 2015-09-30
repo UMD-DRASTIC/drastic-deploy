@@ -12,6 +12,10 @@
 - name: Waiting for Cassandra to finish initialization
   wait_for: path=/var/log/cassandra/system.log search_regex="Created default superuser role 'cassandra'"
 
+- name: Ensure we get the latest Mosquitto MQTT broker
+  apt_repository: repo='ppa:mosquitto-dev/mosquitto-ppa'
+  sudo: yes
+
 - name: update apt-cache
   sudo: true
   apt: update_cache=yes
@@ -26,7 +30,12 @@
     - vim
     - python-pip
     - python-virtualenv
+    - mosquitto
   sudo: true
+
+- name: Start the MQTT broker
+  service: name=mosquitto state=started
+  sudo: yes
 
 - name: Ensures /var/www/.python-eggs dir exists
   file: path=/var/www/.python-eggs state=directory owner=www-data
@@ -38,3 +47,18 @@
        key_file="{{ install_dir }}/.ssh/indigo_deployment_private_key"
        accept_hostkey=yes
        force=yes
+#- name: Copy local source
+#  synchronize: src=../indigo/ dest="{{ install_dir }}/indigo"
+#  remote_user: vagrant
+
+- name: Copy listener init script
+  template: src=indigo-listener.conf dest=/etc/init/indigo-listener.conf
+  sudo: yes
+
+- name: Start the listener
+  service: name=indigo-listener state=started
+  sudo: yes
+
+- name: Restart the Indigo web service
+  service: name=indigo-web state=restarted
+  sudo: yes
