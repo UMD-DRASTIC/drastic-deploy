@@ -3,8 +3,8 @@
 # System initialisation
 # Install all of the required apt packages
 ##############################################################################
-#- debug: msg="Waiting 1 minute for Cassandra to start - yes - really"
-#- pause: minutes=1
+- name: Create log file directory
+  file: path="{{ install_dir }}/log/" state=directory
 
 - name: Waiting for Cassandra to start
   wait_for: path=/var/log/cassandra/system.log state=present
@@ -12,16 +12,12 @@
 - name: Waiting for Cassandra to finish initialization
   wait_for: path=/var/log/cassandra/system.log search_regex="Created default superuser role 'cassandra'"
 
-- name: Ensure we get the latest Mosquitto MQTT broker
-  apt_repository: repo='ppa:mosquitto-dev/mosquitto-ppa'
-  sudo: yes
-
 - name: update apt-cache
   sudo: true
-  apt: update_cache=yes
+  apt: update_cache=yes # upgrade=full install_recommends=no
 
 - name: Install useful packages
-  apt: pkg={{ item }} state=installed
+  apt: pkg={{ item }} state=installed install_recommends=no
   with_items:
     - build-essential
     - git
@@ -30,12 +26,7 @@
     - vim
     - python-pip
     - python-virtualenv
-    - mosquitto
   sudo: true
-
-- name: Start the MQTT broker
-  service: name=mosquitto state=started
-  sudo: yes
 
 - name: Ensures /var/www/.python-eggs dir exists
   file: path=/var/www/.python-eggs state=directory owner=www-data
@@ -50,15 +41,3 @@
 #- name: Copy local source
 #  synchronize: src=../indigo/ dest="{{ install_dir }}/indigo"
 #  remote_user: vagrant
-
-- name: Copy listener init script
-  template: src=indigo-listener.conf dest=/etc/init/indigo-listener.conf
-  sudo: yes
-
-- name: Start the listener
-  service: name=indigo-listener state=started
-  sudo: yes
-
-- name: Restart the Indigo web service
-  service: name=indigo-web state=restarted
-  sudo: yes
