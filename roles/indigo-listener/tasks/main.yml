@@ -51,17 +51,12 @@
   sudo: yes
   when: dockerfile.changed
 
-#- name: Manually create the listener virtualenv
-#  command: virtualenv "{{ install_dir }}/listener" creates="{{ install_dir }}/listener"
-
 - name: Install requirements
   pip: name={{ item }} virtualenv="{{ install_dir }}/listener"
   with_items:
     - docopt
     - paho-mqtt
     - python-magic
-    - requests
-    - crcmod
 
 - name: Install indigo lib
   shell: "{{ install_dir }}/listener/bin/python setup.py develop"
