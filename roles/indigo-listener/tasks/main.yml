@@ -4,10 +4,6 @@
   apt_repository: repo='ppa:mosquitto-dev/mosquitto-ppa'
   sudo: yes
 
-- name: update apt-cache
-  sudo: true
-  apt: update_cache=yes upgrade=full install_recommends=no
-
 - name: Install useful packages
   apt: pkg={{ item }} state=installed install_recommends=no
   with_items:
@@ -57,6 +53,7 @@
     - docopt
     - paho-mqtt
     - python-magic
+    - gevent
 
 - name: Install indigo lib
   shell: "{{ install_dir }}/listener/bin/python setup.py develop"
