@@ -3,7 +3,7 @@
 
 - name: Install a complete Indigo instance
   remote_user: indigo
-  hosts: all
+  hosts: indigo
 
 - include: databases.yml
 - include: webservers.yml
