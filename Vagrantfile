@@ -26,7 +26,13 @@ Vagrant.configure(2) do |config|
   end
 
   config.vm.provision "ansible" do |ansible|
-    ansible.playbook = "deploy_standalone.yml"
+    ansible.playbook = "databases.yml"
+
+    ansible.groups = {
+      "indigo-databases" => ["indigo"],
+      "indigo-webservers" => ["indigo"],
+      "indigo:children" => ["indigo-databases", "indigo-webservers"]
+    }
 
     # We override these variables to account for the default user being "vagrant" rather than "indigo".
     ansible.extra_vars = {

@@ -32,12 +32,12 @@
   file: path=/var/www/.python-eggs state=directory owner=www-data
   sudo: true
 
-- name: Clone git repo
-  git: repo=git@bitbucket.org:archivea/indigo.git
-       dest="{{ install_dir }}/indigo"
-       key_file="{{ install_dir }}/.ssh/indigo_deployment_private_key"
-       accept_hostkey=yes
-       force=yes
-#- name: Copy local source
-#  synchronize: src=../indigo/ dest="{{ install_dir }}/indigo"
-#  remote_user: vagrant
+#- name: Clone git repo
+#  git: repo=git@bitbucket.org:archivea/indigo.git
+#       dest="{{ install_dir }}/indigo"
+#       key_file="{{ install_dir }}/.ssh/indigo_deployment_private_key"
+#       accept_hostkey=yes
+#       force=yes
+- name: Copy local source
+  synchronize: src=../indigo/ dest="{{ install_dir }}/indigo"
+  remote_user: vagrant
