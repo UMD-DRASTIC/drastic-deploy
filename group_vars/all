@@ -1,3 +1,5 @@
 ---
 
-install_dir: /home/indigo/
+install_dir: /home/indigo
+temp_dir: /tmp
+production: false

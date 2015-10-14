@@ -60,15 +60,18 @@
     - PyYAML
     - cql
   sudo: yes
+  when: production
 
 - name: Download CCM
-  git: repo=https://github.com/pcmanus/ccm.git dest=/tmp/ccm
+  git: repo=https://github.com/pcmanus/ccm.git dest='{{ temp_dir }}/ccm'
+  when: production
 
 - name: Install CCM
   shell: ./setup.py install
   sudo: yes
   args:
-    chdir: /tmp/ccm
+    chdir: '{{ temp_dir }}/ccm'
+  when: production
 
 ##############################################################################
 # Cassandra Configuration
@@ -89,3 +92,9 @@
 - name: Start Cassandra
   service: name=cassandra state=running
   sudo: yes
+
+- name: Waiting for Cassandra to finish initialization
+  action: command cqlsh -e exit
+  register: cqlsh_ready
+  until: cqlsh_ready.rc == 0
+  delay: 5

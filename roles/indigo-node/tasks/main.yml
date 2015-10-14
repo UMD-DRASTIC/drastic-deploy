@@ -6,12 +6,6 @@
 - name: Create log file directory
   file: path="{{ install_dir }}/log/" state=directory
 
-- name: Waiting for Cassandra to start
-  wait_for: path=/var/log/cassandra/system.log state=present
-
-- name: Waiting for Cassandra to finish initialization
-  wait_for: path=/var/log/cassandra/system.log search_regex="Created default superuser role 'cassandra'"
-
 - name: update apt-cache
   sudo: true
   apt: update_cache=yes # upgrade=full install_recommends=no
@@ -41,3 +35,6 @@
 #- name: Copy local source
 #  synchronize: src=../indigo/ dest="{{ install_dir }}/indigo"
 #  remote_user: vagrant
+
+- name: Copy settings
+  template: src=settings.py dest="{{ install_dir }}/indigo"

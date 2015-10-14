@@ -18,19 +18,19 @@
   file: name='{{ install_dir }}/scripts_cache' state=directory
 
 - name: Get the latest Docker
-  command: curl -sSL -o /tmp/install_docker.sh https://get.docker.com/
+  command: curl -sSL -o '{{ temp_dir }}/install_docker.sh' https://get.docker.com/
   sudo: yes
   register: getdocker
   args:
-    creates: /tmp/install_docker.sh
+    creates: '{{ temp_dir }}/install_docker.sh'
 
 - name: Futz around with Docker
-  command: chmod +x /tmp/install_docker.sh
+  command: chmod +x '{{ temp_dir }}/install_docker.sh'
   sudo: yes
   when: getdocker.changed
 
 - name: Install Docker
-  command: /tmp/install_docker.sh
+  command: '{{ temp_dir }}/install_docker.sh'
   sudo: yes
   when: getdocker.changed
 
@@ -46,6 +46,8 @@
   command: /usr/bin/docker build -t alloy_python '{{ install_dir }}'
   sudo: yes
   when: dockerfile.changed
+  environment:
+    TMPDIR: '{{ temp_dir }}'
 
 - name: Install requirements
   pip: name={{ item }} virtualenv="{{ install_dir }}/listener"
@@ -54,9 +56,13 @@
     - paho-mqtt
     - python-magic
     - gevent
+  environment:
+    TMPDIR: '{{ temp_dir }}'
 
 - name: Install indigo lib
   shell: "{{ install_dir }}/listener/bin/python setup.py develop"
+  environment:
+    TMPDIR: '{{ temp_dir }}'
   args:
     chdir: "{{ install_dir }}/indigo"
 
