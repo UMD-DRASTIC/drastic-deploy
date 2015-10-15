@@ -432,6 +432,7 @@ listen_interface: {{ cassandra_listen_interface }}
 # Address to broadcast to other Cassandra nodes
 # Leaving this blank will set it to the same value as listen_address
 # broadcast_address: 1.2.3.4
+broadcast_interface: {{ cassandra_broadcast_interface }}
 
 # Internode authentication backend, implementing IInternodeAuthenticator;
 # used to allow/disallow connections from peer nodes.
