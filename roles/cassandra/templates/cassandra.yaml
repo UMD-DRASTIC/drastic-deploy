@@ -426,6 +426,7 @@ ssl_storage_port: 7001
 # ipv4. If there is only one address it will be selected regardless of ipv4/ipv6.
 #listen_address: localhost
 listen_interface: {{ cassandra_interface }}
+
 # listen_interface_prefer_ipv6: false
 
 # Address to broadcast to other Cassandra nodes
