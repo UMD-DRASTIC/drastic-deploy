@@ -1,0 +1,3 @@
+---
+# This is the name for the Vagrant VM, so be wary if you have a real node called this.
+cassandra_interface: eth0

@@ -312,8 +312,11 @@ seed_provider:
       parameters:
           # seeds is actually a comma-delimited list of addresses.
           # Ex: "<ip1>,<ip2>,<ip3>"
-#          - seeds: "127.0.0.1"
-          - seeds: "{% for host in groups['indigo-databases'] %}{{ hostvars[host]['ansible_eth1']['ipv4']['address'] }} {% if not loop.last %}{{ ', ' }}{% endif %}{% endfor %}"
+          - seeds: "{%- for host in groups['indigo-databases'] -%}
+          {%- set interface = 'ansible_' + hostvars[host]['cassandra_interface'] -%}
+          {{ hostvars[host][interface]['ipv4']['address'] }}
+          {%- if not loop.last %}{{ ', ' }}{% endif -%}
+          {%- endfor -%}"
 
 # For workloads with more data than can fit in memory, Cassandra's
 # bottleneck will be reads that need to fetch data from
@@ -426,13 +429,13 @@ ssl_storage_port: 7001
 # address will be used. If true the first ipv6 address will be used. Defaults to false preferring
 # ipv4. If there is only one address it will be selected regardless of ipv4/ipv6.
 #listen_address: localhost
-listen_interface: {{ cassandra_listen_interface }}
+listen_interface: {{ cassandra_interface }}
 # listen_interface_prefer_ipv6: false
 
 # Address to broadcast to other Cassandra nodes
 # Leaving this blank will set it to the same value as listen_address
 # broadcast_address: 1.2.3.4
-broadcast_interface: {{ cassandra_broadcast_interface }}
+broadcast_interface:
 
 # Internode authentication backend, implementing IInternodeAuthenticator;
 # used to allow/disallow connections from peer nodes.
