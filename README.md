@@ -67,10 +67,18 @@ e.g.
 * Create a ```hosts``` file containing the IP address of the servers.  It should look like..
 
 ```
-[indigo]
+[indigo-databases]
+192.168.20.20 cassandra_interface=eth0
+
+[indigo-webservers]
 192.168.20.20
+
+[indigo:children]
+indigo-databases
+indigo-webservers
 ```
 
+Where the IP addresses should be replaced with the host name/IP address of each machine. For each [indigo-databases] you must provide the Ethernet interface on which Cassandra communicates. Usually this is eth0, but it may be something different on more complex topologies.
 
 #### Deploying
 
