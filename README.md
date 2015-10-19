@@ -1,7 +1,33 @@
 # Indigo Deployment
 
 The following steps describe how to deploy Indigo to a remote (or local) server.
-[[[ **note:   How is the deployment to _multiple_ servers or, the addition of a server achieved?** ]
+[[[ **note:  To deploy to _multiple_ servers or add a server achieved 
+-- In order to do this then the installation needs to know 
+- the interface of the Cassandra network , i.e. the  one that Cassandra uses to coordinate
+- the address of at least one pre-existing node, ... since the cluster has to have something to Join
+- the name of the Cassandra cluster.
+
+This should now be in the installation scripts, but the nuts and bolts is that in /etc/cassandra/cassandra.yaml
+
+- set 
+
+```
+auto_bootstrap: true
+listen_interface: eth<n>
+broadcast_address: 
+```
+
+- in the seed_provider: stanza add the addresses of known members 
+
+```
+seeds: "<ip1>[,<ip2>]"
+``` 
+- ensure the clustername is the same 
+
+- on the new node node,stop Cassandra ( service cassandra stop ), remove _everything_ from the data directory ( /var/lib/cassandra/data/ ), 
+
+- Restart Cassandra, leave it to sort itself out by waiting for all the nodes in ```nodetool status``` to show up and be in state **UN** and then execute ```nodetool cleanup``` on all the nodes in the cluster ( which may take som time).
+ ]
 
 
 #### Vagrant
