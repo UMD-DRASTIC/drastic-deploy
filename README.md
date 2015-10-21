@@ -8,7 +8,8 @@ The following steps describe how to deploy Indigo to a remote (or local) server.
 Ansible expects a user _indigo_ to exist with sudo rights.  
 e.g. 
 ```
-sudo adduser --add_extra_groups adm,sudo indigo
+sudo adduser  indigo
+sudo usermod -G sudo,adm indigo
 sudo mkdir ~indigo/.ssh
 sudo cat ~/.ssh/authorized_keys >> ~indigo/.ssh/authorized_keys # If you want to propagate ssh certificates
 ```
