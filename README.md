@@ -4,6 +4,16 @@ The following steps describe how to deploy Indigo to a remote (or local) server.
 
 [ Note, if you intend to run multiple servers, know beforehand the details of the networks, as it is best to set up the system with the 'real' network rather than using localhost. ]
 
+####  PREREQUISTES
+Ansible expects a user _indigo_ to exist with sudo rights.  
+e.g. 
+```
+sudo adduser  indigo
+sudo usermod -G sudo,adm indigo
+sudo mkdir ~indigo/.ssh
+sudo cat ~/.ssh/authorized_keys >> ~indigo/.ssh/authorized_keys # If you want to propagate ssh certificates
+```
+
 #### Vagrant
 
 There is a Vagrantfile with this repo that enables you to install Indigo to a virtual machine with minimum fuss.
