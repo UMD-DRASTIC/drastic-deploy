@@ -44,9 +44,11 @@
   sudo: yes
 
 - name: Install cassandra
-  apt: pkg=dsc22 state=installed update_cache=yes force=yes
+  apt: pkg={{ item }} state=installed update_cache=yes force=yes
   sudo: yes
-
+  with_items:
+    - cassandra=2.2.2
+    - dsc22=2.2.2-1
 
 ##############################################################################
 # Cassandra Cluster Manager

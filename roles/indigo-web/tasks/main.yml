@@ -43,7 +43,7 @@
   sudo: true
 
 - name: Create the cassandra database
-  command: "{{ install_dir }}/web/bin/indigo create"
+  command: "{{ install_dir }}/web/bin/indigo create -c settings"
 
 - name: Collect static
   command: "{{ install_dir }}/web/bin/python {{ install_dir }}/web/project/manage.py collectstatic --noinput"

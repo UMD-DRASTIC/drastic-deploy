@@ -37,7 +37,8 @@ Vagrant.configure(2) do |config|
     # We override these variables to account for the default user being "vagrant" rather than "indigo".
     ansible.extra_vars = {
       ansible_ssh_user: "vagrant",
-      install_dir: "/home/vagrant/"
+      install_dir: "/home/vagrant/",
+      cassandra_interface: "eth0"
     }
   end
 end

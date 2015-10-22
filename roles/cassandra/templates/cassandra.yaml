@@ -312,11 +312,7 @@ seed_provider:
       parameters:
           # seeds is actually a comma-delimited list of addresses.
           # Ex: "<ip1>,<ip2>,<ip3>"
-          - seeds: "{%- for host in groups['indigo-databases'] -%}
-          {%- set interface = 'ansible_' + hostvars[host]['cassandra_interface'] -%}
-          {{ hostvars[host][interface]['ipv4']['address'] }}
-          {%- if not loop.last %}{{ ', ' }}{% endif -%}
-          {%- endfor -%}"
+          - seeds: "{{ hostvars[cassandra_seed_server]['ansible_' ~ hostvars[cassandra_seed_server]['cassandra_interface']]['ipv4']['address'] }}"
 
 # For workloads with more data than can fit in memory, Cassandra's
 # bottleneck will be reads that need to fetch data from
@@ -330,7 +326,7 @@ seed_provider:
 # number of "concurrent_writes" is dependent on the number of cores in
 # your system; (8 * number_of_cores) is a good rule of thumb.
 concurrent_reads: 32
-concurrent_writes: 32
+concurrent_writes: {{ ansible_processor_vcpus * 8 }}
 concurrent_counter_writes: 32
 
 # Total memory to use for sstable-reading buffers.  Defaults to
@@ -486,8 +482,8 @@ start_rpc: false
 # you can specify which should be chosen using rpc_interface_prefer_ipv6. If false the first ipv4
 # address will be used. If true the first ipv6 address will be used. Defaults to false preferring
 # ipv4. If there is only one address it will be selected regardless of ipv4/ipv6.
-rpc_address: localhost
-# rpc_interface: eth1
+#rpc_address: localhost
+rpc_interface: {{ cassandra_interface }}
 # rpc_interface_prefer_ipv6: false
 
 # port for Thrift to listen for clients on
@@ -870,3 +866,5 @@ enable_user_defined_functions: false
 windows_timer_interval: 1
 
 auto_bootstrap: true
+
+#disk_access_mode: standard
