@@ -18,6 +18,7 @@
   command: virtualenv "{{ install_dir }}/web" creates="{{ install_dir }}/web"
 
 - name: Clone git repo
+#  git: repo="/home/alloy/tmp/indigo_git/indigo-web.git"
   git: repo="git@bitbucket.org:archivea/indigo-web.git"
        dest="{{ install_dir }}/web/project"
        key_file="{{ install_dir }}/.ssh/indigo_deployment_private_key"
@@ -54,12 +55,18 @@
 - name: Set up database
   command: "{{ install_dir }}/web/bin/python {{ install_dir }}/web/bin/indigo create"
 
-- name: Create default user
-  script: init_user.expect "{{ install_dir }} {{ default_user_name }} {{ default_password }}"
+- name: Create default users
+  script: init_user.expect "{{ install_dir }} {{ item.user_name }} {{ item.password }}"
   ignore_errors: yes
+  with_items:
+    - { user_name: indigo, password: indigo }
+    - { user_name: guest, password: '' }
 
-- name: Create default group
-  command: "{{ install_dir }}/web/bin/python {{ install_dir }}/web/bin/indigo group-create {{ default_group }} {{ default_user_name }}"
+- name: Create default groups
+  command: "{{ install_dir }}/web/bin/python {{ install_dir }}/web/bin/indigo group-create {{ item.group }} {{ item.user_name }}"
+  with_items:
+    - { user_name: indigo, group: indigo }
+    - { user_name: guest, group: guest }
 
 - name: Start nginx
   service: name=nginx state=restarted

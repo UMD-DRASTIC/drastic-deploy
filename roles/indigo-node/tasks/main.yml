@@ -27,6 +27,7 @@
   sudo: true
 
 - name: Clone git repo
+#  git: repo=/home/alloy/tmp/indigo_git/indigo.git
   git: repo=git@bitbucket.org:archivea/indigo.git
        dest="{{ install_dir }}/indigo"
        key_file="{{ install_dir }}/.ssh/indigo_deployment_private_key"

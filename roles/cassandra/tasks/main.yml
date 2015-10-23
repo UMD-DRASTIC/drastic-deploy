@@ -36,7 +36,7 @@
 ##############################################################################
 
 - name: Add Cassandra Repo
-  shell: echo "deb http://debian.datastax.com/community stable main" | sudo tee -a /etc/apt/sources.list.d/cassandra.sources.list
+  apt_repository: repo="deb http://debian.datastax.com/community stable main" state=present
   sudo: yes
 
 - name: Cassandra repository key
@@ -87,16 +87,13 @@
     - Restart Cassandra
   sudo: yes
 
-#- name: "Copy Cassandra Topology"
-#  copy: src=templates/cassandra-topology.properties dest=/etc/cassandra/cassandra-topology.properties
-#  sudo: true
-
 - name: Start Cassandra
   service: name=cassandra state=running
   sudo: yes
 
 - name: Waiting for Cassandra to finish initialization
-  action: command cqlsh -e exit
+  command: /usr/bin/cqlsh "{{ hostvars[inventory_hostname]['ansible_' ~ cassandra_interface]['ipv4']['address'] }}" -e exit
   register: cqlsh_ready
   until: cqlsh_ready.rc == 0
-  delay: 5
+  delay: 10
+  retries: 5

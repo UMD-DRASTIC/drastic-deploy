@@ -10,6 +10,7 @@
   command: virtualenv "{{ install_dir }}/agent" creates="{{ install_dir }}/agent"
 
 - name: Clone git repo
+#  git: repo="/home/alloy/tmp/indigo_git/indigo-agent.git"
   git: repo="git@bitbucket.org:archivea/indigo-agent.git"
        dest="{{ install_dir }}/agent/project"
        key_file="{{ install_dir }}/.ssh/indigo_deployment_private_key"

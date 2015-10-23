@@ -867,4 +867,4 @@ windows_timer_interval: 1
 
 auto_bootstrap: true
 
-#disk_access_mode: standard
+disk_access_mode: standard
