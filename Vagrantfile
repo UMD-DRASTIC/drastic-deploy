@@ -14,7 +14,7 @@ Vagrant.configure(2) do |config|
   # Create a forwarded port mapping which allows access to a specific port
   # within the machine from a port on the host machine. In the example below,
   # accessing "localhost:8080" will access port 80 on the guest machine.
-  #config.vm.network "public_network", ip: "192.168.111.222"
+  config.vm.network "public_network", ip: "192.168.111.222"
   config.vm.network "forwarded_port", guest: 80, host: 8080  # The web app
   config.vm.network "forwarded_port", guest: 9000, host: 9000  # The agent
   config.vm.network "forwarded_port", guest: 9042, host: 9042  # Cassandra native protocol
@@ -33,19 +33,17 @@ Vagrant.configure(2) do |config|
   end
 
   config.vm.provider "libvirt" do |lv|
-    lv.memory = "2048"
+    lv.memory = 2048
   end
 
   config.vm.provision "ansible" do |ansible|
     ansible.playbook = "deploy_standalone.yml"
 
     ansible.groups = {
-      "indigo-databases" => ["indigo"],
+      "indigo-databases" => ["indigo production=False"],
       "indigo-webservers" => ["indigo"],
       "indigo:children" => ["indigo-databases", "indigo-webservers"]
     }
-
-    ansible.skip_tags = ["ldap"]
 
     # We override these variables to account for the default user being "vagrant" rather than "indigo".
     ansible.extra_vars = {
@@ -53,7 +51,9 @@ Vagrant.configure(2) do |config|
       install_dir: "/home/vagrant/",
       cassandra_interface: "eth0",
       cassandra_seed_server: "indigo",
-      cassandra_replication_factor: "1"
+      cassandra_replication_factor: "1",
+      LDAP_SERVER_URI: "ldap://ldap.umd.edu",
+      LDAP_USER_DN_TEMPLATE: "uid=%(user)s,ou=people,dc=umd,dc=edu"
     }
   end
 end

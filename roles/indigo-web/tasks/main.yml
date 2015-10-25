@@ -12,7 +12,6 @@
   with_items:
     - nginx
     - expect
-    - upstart
   sudo: true
 
 - name: Manually create the webapp virtualenv
@@ -35,6 +34,10 @@
   shell: "{{ install_dir }}/web/bin/python setup.py develop"
   args:
     chdir: "{{ install_dir }}/indigo"
+
+- name: Copy init script
+  template: src=indigo-web.conf dest=/etc/init/indigo-web.conf
+  sudo: true
 
 - name: Copy nginx config
   template: src=indigo-web.nginx dest=/etc/nginx/sites-enabled/default
@@ -73,7 +76,7 @@
     - libsasl2-dev
     - libssl-dev
   sudo: true
-  tags: ldap
+  when: LDAP_SERVER_URI is defined
 
 - name: Install LDAP modules
   pip:
@@ -81,36 +84,13 @@
     virtualenv="{{ install_dir }}/web"
   with_items:
     - python-ldap
-    - django-auth-ldap
-  tags: ldap
-
-- name: Configure LDAP settings
-  template: src=ldap_settings.py.j2 dest={{ install_dir }}/web/project/indigo_ui/ldap_settings.py
-  tags: ldap
-
-# - name: Detect systemd
-#   stat: path=/lib/systemd/system/udev.service
-#   register: systemd_reg
-
-- name: Copy upstart script
-  template: src=indigo-web.conf dest=/etc/init/indigo-web.conf
-  sudo: true
-
-# - name: Place systemd indigo-web.service
-#   when: systemd_reg.stat.exists == True
-#   template: src=indigo-web.service dest=/lib/systemd/system/indigo-web.service
-#   sudo: true
-
-# - name: Reload systemd service
-#   when: systemd_reg.stat.exists == True
-#   command: systemctl daemon-reload
-#   sudo: true
+  when: LDAP_SERVER_URI is defined
 
 - name: Start nginx
   service: name=nginx state=restarted
   sudo: true
 
 - name: Start the Indigo web service
-  service: name=indigo-web state=restarted
+  service: name=indigo-web state=started
   sudo: yes
   register: indigo-web-installed
