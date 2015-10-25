@@ -6,6 +6,10 @@
   apt: update_cache=yes
   sudo: yes
 
+- name: Install python-dev
+  apt: pkg=python-dev state=installed update_cache=no
+  sudo: yes
+
 - name: Manually create the agent virtualenv
   command: virtualenv "{{ install_dir }}/agent" creates="{{ install_dir }}/agent"
 
