@@ -12,6 +12,8 @@
   with_items:
     - nginx
     - expect
+    - libldap2-dev
+    - libsasl2-dev
   sudo: true
 
 - name: Manually create the webapp virtualenv
