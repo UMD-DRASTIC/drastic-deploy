@@ -21,6 +21,11 @@
        accept_hostkey=yes
        force=yes
 
+- name: Install requirements
+  pip:
+    requirements="{{ install_dir }}/agent/project/requirements.txt"
+    virtualenv="{{ install_dir }}/agent"
+
 - name: Install indigo agent into venv
   shell: "{{ install_dir }}/agent/bin/python setup.py develop"
   args:
