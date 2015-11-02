@@ -5,3 +5,8 @@ hosts
 
 # Vagrant
 .vagrant/
+
+# Eclipse project
+.project
+.pydevproject
+.settings
