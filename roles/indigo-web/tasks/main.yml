@@ -26,6 +26,7 @@
        key_file="{{ install_dir }}/.ssh/indigo_deployment_private_key"
        accept_hostkey=yes
        force=yes
+       update=yes
 
 - name: Install requirements
   pip:
