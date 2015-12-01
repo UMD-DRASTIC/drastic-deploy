@@ -303,6 +303,7 @@ commitlog_segment_size_in_mb: 32
 
 # any class that implements the SeedProvider interface and has a
 # constructor that takes a Map<String, String> of parameters will do.
+{%- if hostvars.cassandra_seed_server %}
 seed_provider:
     # Addresses of hosts that are deemed contact points.
     # Cassandra nodes use this list of hosts to find each other and learn
@@ -313,7 +314,7 @@ seed_provider:
           # seeds is actually a comma-delimited list of addresses.
           # Ex: "<ip1>,<ip2>,<ip3>"
           - seeds: "{{ hostvars[cassandra_seed_server]['ansible_' ~ hostvars[cassandra_seed_server]['cassandra_interface']]['ipv4']['address'] }}"
-
+{% endif %}
 # For workloads with more data than can fit in memory, Cassandra's
 # bottleneck will be reads that need to fetch data from
 # disk. "concurrent_reads" should be set to (16 * number_of_drives) in
@@ -866,6 +867,9 @@ enable_user_defined_functions: false
 # setting.
 windows_timer_interval: 1
 
+{%- if hostvars.cassandra_seed_server %}
 auto_bootstrap: true
-
+{% else %}
+auto_bootstrap: false
+{% endif %}
 disk_access_mode: standard
