@@ -50,7 +50,7 @@ Vagrant.configure(2) do |config|
       ansible_ssh_user: "vagrant",
       install_dir: "/home/vagrant/",
       cassandra_interface: "eth0",
-      cassandra_seed_server: "indigo",
+#      cassandra_seed_server: "indigo",
       cassandra_replication_factor: "1",
       LDAP_SERVER_URI: "ldap://ldap.umd.edu",
       LDAP_USER_DN_TEMPLATE: "uid=%(user)s,ou=people,dc=umd,dc=edu"

@@ -314,6 +314,21 @@ seed_provider:
           # seeds is actually a comma-delimited list of addresses.
           # Ex: "<ip1>,<ip2>,<ip3>"
           - seeds: "{{ hostvars[cassandra_seed_server]['ansible_' ~ hostvars[cassandra_seed_server]['cassandra_interface']]['ipv4']['address'] }}"
+
+auto_bootstrap: true
+{% else %}
+seed_provider:
+    # Addresses of hosts that are deemed contact points.
+    # Cassandra nodes use this list of hosts to find each other and learn
+    # the topology of the ring.  You must change this if you are running
+    # multiple nodes!
+    - class_name: org.apache.cassandra.locator.SimpleSeedProvider
+      parameters:
+          # seeds is actually a comma-delimited list of addresses.
+          # Ex: "<ip1>,<ip2>,<ip3>"
+          - seeds:  “localhost"
+
+auto_bootstrap: false
 {% endif %}
 # For workloads with more data than can fit in memory, Cassandra's
 # bottleneck will be reads that need to fetch data from
@@ -867,9 +882,4 @@ enable_user_defined_functions: false
 # setting.
 windows_timer_interval: 1
 
-{% if 'cassandra_seed_server' in hostvars %}
-auto_bootstrap: true
-{% else %}
-auto_bootstrap: false
-{% endif %}
 disk_access_mode: standard
