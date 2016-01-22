@@ -90,6 +90,11 @@ indigo-webservers
 
 Where the IP addresses should be replaced with the host name/IP address of each machine. For each [indigo-databases] you must provide the Ethernet interface on which Cassandra communicates. Usually this is eth0, but it may be something different on more complex topologies.
 
+* The default behavior is to use HTTPS. If needed this can be changed in the
+webservers.yml file with the variable https_mode. The nginx server is using the
+SSL certificate in /etc/nginx/ssl/nginx.crt. If they are not present a self-signed
+version is created during deployment.
+
 #### Deploying
 
 
@@ -120,7 +125,7 @@ See this [LINK](https://bitbucket.org/archivea/indigo) for full details, but the
 ```
 ssh indigo@<target>
 export INDIGO_CONFIG=settings
-. /usr/lib/indigo/web/bin/activate
+source ~/web/bin/activate
 indigo user-create
 # and you probably want to create a group or two .... especially since you need to for ingesting
 indigo group_create <group_name>  <user_name_that_owns_group>
@@ -174,3 +179,14 @@ seeds: "<ip1>[,<ip2>]"
 
 - Restart Cassandra, leave it to sort itself out by waiting for all the nodes to show up in the output from the command line ```nodetool status```  and be in state **UN** and then run ```nodetool cleanup``` on all the nodes in the cluster ( which may take som time, so perhaps best done in TMUX).
  ]
+ 
+### Install on lxc container
+
+For some reasons Cassandra configuration is failing when trying to deploy on a
+lxc container. If you experiment a connection error when ansible is trying to 
+finish Cassandra initialization you can try to log on the container, and restart
+cassandra manually, it should now listen on eth0 correctly rather than 127.0.0.1.
+
+For the listener the Docker install is failing on the first time but works if
+ansible is restarted
+

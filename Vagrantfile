@@ -16,6 +16,7 @@ Vagrant.configure(2) do |config|
   # accessing "localhost:8080" will access port 80 on the guest machine.
 #  config.vm.network "public_network", ip: "192.168.111.222"
   config.vm.network "forwarded_port", guest: 80, host: 8080  # The web app
+  config.vm.network "forwarded_port", guest: 443, host: 8443  # The https web app 
   config.vm.network "forwarded_port", guest: 9000, host: 9000  # The agent
   config.vm.network "forwarded_port", guest: 9042, host: 9042  # Cassandra native protocol
 

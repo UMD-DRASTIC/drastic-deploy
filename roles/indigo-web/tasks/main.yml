@@ -16,6 +16,11 @@
     - libsasl2-dev
   sudo: true
 
+- name: Install Global Python modules
+  pip:
+    name=pexpect
+  sudo: true
+
 - name: Manually create the webapp virtualenv
   command: virtualenv "{{ install_dir }}/web" creates="{{ install_dir }}/web"
 
@@ -40,10 +45,6 @@
 
 - name: Copy init script
   template: src=indigo-web.conf dest=/etc/init/indigo-web.conf
-  sudo: true
-
-- name: Copy nginx config
-  template: src=indigo-web.nginx dest=/etc/nginx/sites-enabled/default
   sudo: true
 
 - name: Create the cassandra database
@@ -88,6 +89,52 @@
   with_items:
     - python-ldap
   when: LDAP_SERVER_URI is defined
+
+- name: Create HTTP nginx config
+  template: src=indigo-web.nginx dest=/etc/nginx/sites-available/indigo_http
+  sudo: true
+
+- name: Create HTTPS nginx config
+  template: src=indigo-web-ssl.nginx dest=/etc/nginx/sites-available/indigo_https
+  sudo: true
+
+- name: Create SSL directory for nginx
+  file: path=/etc/nginx/ssl state=directory
+  sudo: true
+
+- name: Retrieves facts for SSL certificate
+  stat: path=/etc/nginx/ssl/nginx.crt
+  register: ssl_certificate
+
+- name: Retrieves facts for SSL key
+  stat: path=/etc/nginx/ssl/nginx.key
+  register: ssl_key
+
+- name: Self-sign SSL Certificate when not present
+  expect:
+    command: openssl req -new -x509 -sha256 -newkey rsa:2048 -days 365 -nodes -out nginx.crt -keyout nginx.key
+    chdir: /etc/nginx/ssl
+    responses:
+      Country Name (.*): "UK"
+      State (.*): "Merseyside"
+      Locality (.*): "Liverpool"
+      Organization Name (.*): "Archive Analytics"
+      Organizational Unit Name(.*): ""
+      Common Name (.*): "Indigo"
+      Email (.*): ""
+  when: (ssl_certificate.stat.exists == False) or
+        (ssl_key.stat.exists == False)
+  sudo: true
+
+- name: Copy nginx config for https mode
+  file: src=/etc/nginx/sites-available/indigo_https dest=/etc/nginx/sites-enabled/indigo_https state=link
+  sudo: true
+  when: https_mode
+
+- name: Copy nginx config for http mode
+  file: src=/etc/nginx/sites-available/indigo_http dest=/etc/nginx/sites-enabled/indigo_http state=link
+  sudo: true
+  when: not https_mode
 
 - name: Start nginx
   service: name=nginx state=restarted
