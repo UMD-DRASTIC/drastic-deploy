@@ -59,18 +59,24 @@
 - name: Set up database
   command: "{{ install_dir }}/web/bin/python {{ install_dir }}/web/bin/indigo create"
 
-- name: Create default users
-  script: init_user.expect "{{ install_dir }} {{ item.user_name }} {{ item.password }}"
-  ignore_errors: yes
-  with_items:
-    - { user_name: indigo, password: indigo }
-    - { user_name: guest, password: '' }
+#- name: Create default users
+#  script: init_user.expect "{{ install_dir }}" "{{ item.user_name }}" "{{ item.password }}" "{{ item.admin }}"
+#  ignore_errors: yes
+#  with_items:
+#    - { user_name: indigo, password: indigo, admin: y }
+#    - { user_name: guest, password: guest, admin: n }
 
-- name: Create default groups
-  command: "{{ install_dir }}/web/bin/python {{ install_dir }}/web/bin/indigo group-create {{ item.group }} {{ item.user_name }}"
-  with_items:
-    - { user_name: indigo, group: indigo }
-    - { user_name: guest, group: guest }
+#- name: Create default groups
+#  command: "{{ install_dir }}/web/bin/python {{ install_dir }}/web/bin/indigo group-create {{ item.group }}"
+#  with_items:
+#    - { group: indigo }
+#    - { group: guest }
+
+#- name: Add users to groups
+#  command: "{{ install_dir }}/web/bin/python {{ install_dir }}/web/bin/indigo group-add-user {{ item.group }} {{ item.user }}"
+#  with_items:
+#    - { group: indigo, user: indigo }
+#    - { group: guest, user: guest }
 
 - name: Install packages for LDAP
   apt: pkg={{ item }} state=installed
@@ -125,6 +131,20 @@
   when: (ssl_certificate.stat.exists == False) or
         (ssl_key.stat.exists == False)
   sudo: true
+
+- name: Delete default nginx config for enabled site
+  file: path=/etc/nginx/sites-enabled/default state=absent
+  sudo: true
+
+- name: Delete nginx config for https mode when http mode
+  file: path=/etc/nginx/sites-enabled/indigo_https state=absent
+  sudo: true
+  when: not https_mode
+
+- name: Delete nginx config for http mode when https mode
+  file: path=/etc/nginx/sites-enabled/indigo_http state=absent
+  sudo: true
+  when: https_mode
 
 - name: Copy nginx config for https mode
   file: src=/etc/nginx/sites-available/indigo_https dest=/etc/nginx/sites-enabled/indigo_https state=link
