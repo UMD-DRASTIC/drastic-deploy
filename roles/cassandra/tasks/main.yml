@@ -3,20 +3,26 @@
 # Java
 # This must be Oracle's Java, and also should use libjna for performance.
 ##############################################################################
+
+
 - name: Installation dependencies
   apt: pkg=python-apt state=installed update_cache=yes force=yes
-  sudo: yes
+  become: yes
+  become_method: sudo
 
 - name: Add PPA for Oracle Java 8
   apt_repository: repo='ppa:webupd8team/java' state=present
-  sudo: yes
+  become: yes
+  become_method: sudo
 
 - name: Select and agree to licence
   debconf: name='oracle-java8-installer' question='shared/accepted-oracle-license-v1-1' value='true' vtype='select'
-  sudo: yes
+  become: yes
+  become_method: sudo
 
 - name: System dependencies
-  sudo: yes
+  become: yes
+  become_method: sudo
   apt: pkg={{ item }} state=installed update_cache=yes force=yes
   with_items:
     - python-apt
@@ -35,20 +41,22 @@
 # Cassandra
 ##############################################################################
 
-- name: Add Cassandra Repo
+- name: Add Cassandra Repository
   apt_repository: repo="deb http://debian.datastax.com/community stable main" state=present
-  sudo: yes
+  become: yes
+  become_method: sudo
 
-- name: Cassandra repository key
-  shell: curl -L http://debian.datastax.com/debian/repo_key | sudo apt-key add -
-  sudo: yes
+- name: Add Cassandra Repository key
+  apt_key: url=http://debian.datastax.com/debian/repo_key state=present
+  become: yes
+  become_method: sudo
 
-- name: Install cassandra
+- name: Install Cassandra
   apt: pkg={{ item }} state=installed update_cache=yes force=yes
-  sudo: yes
+  become: yes
+  become_method: sudo
   with_items:
-    - cassandra=2.2.2
-    - dsc22=2.2.2-1
+    - dsc30
 
 ##############################################################################
 # Cassandra Cluster Manager
@@ -60,8 +68,8 @@
   pip: name={{item}}
   with_items:
     - PyYAML
-    - cql
-  sudo: yes
+  become: yes
+  become_method: sudo
   when: production
 
 - name: Download CCM
@@ -70,7 +78,8 @@
 
 - name: Install CCM
   shell: ./setup.py install
-  sudo: yes
+  become: yes
+  become_method: sudo
   args:
     chdir: '{{ temp_dir }}/ccm'
   when: production
@@ -85,11 +94,13 @@
   template: src=cassandra.yaml dest=/etc/cassandra/cassandra.yaml
   notify:
     - Restart Cassandra
-  sudo: yes
+  become: yes
+  become_method: sudo
 
 - name: Start Cassandra
   service: name=cassandra state=running
-  sudo: yes
+  become: yes
+  become_method: sudo
 
 - name: Waiting for Cassandra to finish initialization
   command: /usr/bin/cqlsh "{{ hostvars[inventory_hostname]['ansible_' ~ cassandra_interface]['ipv4']['address'] }}" -e exit

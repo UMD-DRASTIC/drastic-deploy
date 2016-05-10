@@ -7,7 +7,8 @@
   file: path="{{ install_dir }}/log/" state=directory
 
 - name: update apt-cache
-  sudo: true
+  become: yes
+  become_method: sudo
   apt: update_cache=yes # upgrade=full install_recommends=no
 
 - name: Install useful packages
@@ -20,11 +21,13 @@
     - vim
     - python-pip
     - python-virtualenv
-  sudo: true
+  become: yes
+  become_method: sudo
 
 - name: Ensures /var/www/.python-eggs dir exists
   file: path=/var/www/.python-eggs state=directory owner=www-data
-  sudo: true
+  become: yes
+  become_method: sudo
 
 - name: Clone git repo
 #  git: repo=/home/alloy/tmp/indigo_git/indigo.git
@@ -34,6 +37,7 @@
        accept_hostkey=yes
        force=yes
        update=yes
+       version=develop
 #- name: Copy local source
 #  synchronize: src=../indigo/ dest="{{ install_dir }}/indigo"
 #  remote_user: vagrant

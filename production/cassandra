@@ -1,0 +1,9 @@
+[indigo-databases]
+cassandra-1
+
+[indigo-webservers]
+cassandra-1
+
+[indigo:children]
+indigo-databases
+indigo-webservers

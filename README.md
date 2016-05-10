@@ -101,7 +101,7 @@ version is created during deployment.
 Run the deployment with the following command:
 
 ```
-ansible-playbook deploy_standalone.yml -i hosts --ask-sudo-pass
+ansible-playbook deploy_standalone.yml -i hosts --ask-become-pass
 ```
 
 * Once started the script will ask for some details. The sudo-password for the user specified in deploy-standalone.yml, your bitbucket username and bitbucket password.  This is so that the script can retrieve the code from the private repositories.

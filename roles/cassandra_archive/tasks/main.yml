@@ -1,0 +1,168 @@
+---
+##############################################################################
+# Java
+# This must be Oracle's Java, and also should use libjna for performance.
+##############################################################################
+
+
+- name: Installation dependencies
+  apt: pkg=python-apt state=installed update_cache=yes force=yes
+  become: yes
+  become_method: sudo
+
+- name: Add PPA for Oracle Java 8
+  apt_repository: repo='ppa:webupd8team/java' state=present
+  become: yes
+  become_method: sudo
+
+- name: Select and agree to licence
+  debconf: name='oracle-java8-installer' question='shared/accepted-oracle-license-v1-1' value='true' vtype='select'
+  become: yes
+  become_method: sudo
+
+- name: System dependencies
+  become: yes
+  become_method: sudo
+  apt: pkg={{ item }} state=installed update_cache=yes force=yes
+  with_items:
+    - python-apt
+    - oracle-java8-installer
+    - libjna-java
+    - python-pip
+    - git
+    - curl
+    # For client machine ...
+    - libev4
+    - libev-dev
+    - build-essential
+    - python-dev
+
+##############################################################################
+# Cassandra
+##############################################################################
+
+- name: Stat Archive
+  stat: path=/tmp/apache-cassandra-3.0.5-bin.tar.gz
+  register: archive_stat
+
+- name: Download archive
+  get_url:
+    url=http://apache.crihan.fr/dist/cassandra/3.0.5/apache-cassandra-3.0.5-bin.tar.gz
+    dest=/tmp
+  when: not archive_stat.stat.exists
+
+- name: Stat Cassandra
+  stat: path=/var/lib/apache-cassandra-3.0.5
+  register: cassandra_stat
+
+- name: Extract Cassandra
+  unarchive:
+    copy=no
+    src=/tmp/apache-cassandra-3.0.5-bin.tar.gz
+    dest=/var/lib
+  become: yes
+  become_method: sudo
+  when: not cassandra_stat.stat.exists
+
+- name: Create Cassandra directory link
+  file: 
+    path=/var/lib/cassandra
+    src=/var/lib/apache-cassandra-3.0.5
+    state=link
+  become: yes
+  become_method: sudo 
+
+- name: Create Cassandra User
+  user:
+    name=cassandra
+    system=yes
+    home=/var/lib/cassandra
+    shell=/bin/false
+    state=present
+  become: yes
+  become_method: sudo
+
+- name: Create Cassandra Group
+  user:
+    name=cassandra
+    system=yes
+    state=present
+  become: yes
+  become_method: sudo
+
+- name: Create Cassandra log directory
+  file: path=/var/log/cassandra/log state=directory mode=0770
+  become: yes
+  become_method: sudo
+
+- name: Create Cassandra data directory
+  file: path=/var/lib/cassandra/data state=directory mode=0775
+  become: yes
+  become_method: sudo
+
+- name: Create Cassandra cache directory
+  file: path=/var/lib/cassandra/saved_caches state=directory mode=0775
+  become: yes
+  become_method: sudo
+
+- name: Create Cassandra commitlog directory
+  file: path=/var/lib/cassandra/commitlog state=directory mode=0770
+  become: yes
+  become_method: sudo
+
+- name: Create Cassandra run directory
+  file: path=/var/run/cassandra state=directory mode=0775
+  become: yes
+  become_method: sudo
+
+- name: Change ownership of Cassandra log directory
+  file: path=/var/log/cassandra state=directory owner=cassandra group=cassandra recurse=yes
+  become: yes
+  become_method: sudo
+
+- name: Change ownership of Cassandra run directory
+  file: path=/var/run/cassandra state=directory owner=cassandra group=cassandra
+  become: yes
+  become_method: sudo
+
+- name: Change ownership of Cassandra directory
+  file: 
+    path=/var/lib/apache-cassandra-3.0.5
+    state=directory
+    owner=cassandra
+    group=cassandra
+    recurse=yes
+  become: yes
+  become_method: sudo
+
+
+
+##############################################################################
+# Cassandra Configuration
+# Installs the configuration files for this Cassandra cluster
+##############################################################################
+
+# This will restart Cassandra only if the configuration file has changed. See handlers/main.yaml
+- name: Copy Cassandra configuration file
+  template: src=cassandra.yaml dest=/var/lib/cassandra/conf/cassandra.yaml
+  notify:
+    - Restart Cassandra
+  become: yes
+  become_method: sudo
+
+- name: Copy Cassandra init script
+  template: src=cassandra.service dest=/etc/systemd/system/cassandra.service
+  become: yes
+  become_method: sudo
+
+- name: Start Cassandra
+  service: name=cassandra state=running
+  become: yes
+  become_method: sudo
+
+- name: Waiting for Cassandra to finish initialization
+  command: /usr/local/bin/cqlsh "{{ hostvars[inventory_hostname]['ansible_' ~ cassandra_interface]['ipv4']['address'] }}" -e exit
+  register: cqlsh_ready
+  until: cqlsh_ready.rc == 0
+  delay: 10
+  retries: 5

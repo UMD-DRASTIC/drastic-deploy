@@ -4,4 +4,4 @@
   hosts: indigo-databases
 
   roles:
-    - cassandra
+    - cassandra_archive

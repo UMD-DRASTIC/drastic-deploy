@@ -1,0 +1,4 @@
+# Shared environment for Indigo services
+CQLENG_ALLOW_SCHEMA_MANAGEMENT=1
+AUTH_LDAP_SERVER_URI="ldap://ldap.umd.edu"
+AUTH_LDAP_USER_DN_TEMPLATE="uid=%(user)s,ou=people,dc=umd,dc=edu"

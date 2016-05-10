@@ -1,0 +1,5 @@
+---
+
+
+LDAP_SERVER_URI: "ldap://ldap.umd.edu"
+LDAP_USER_DN_TEMPLATE: "uid=%(user)s,ou=people,dc=umd,dc=edu"
