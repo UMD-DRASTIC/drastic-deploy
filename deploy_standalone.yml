@@ -5,5 +5,5 @@
   remote_user: indigo
   hosts: indigo
 
-#- include: databases.yml
+- include: databases.yml
 - include: webservers.yml
