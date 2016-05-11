@@ -53,6 +53,13 @@
   become: yes
   become_method: sudo
 
+- name: Create sysconfig directory
+  file: 
+    path=/etc/sysconfig
+    state=directory
+  become: yes
+  become_method: sudo 
+
 - name: Copy Indigo-web init script variables
   template: src=indigo-env dest=/etc/sysconfig/indigo-env
   become: yes
