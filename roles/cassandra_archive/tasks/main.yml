@@ -42,13 +42,13 @@
 ##############################################################################
 
 - name: Stat Archive
-  stat: path=/tmp/apache-cassandra-3.0.5-bin.tar.gz
+  stat: path=/home/indigo/apache-cassandra-3.0.5-bin.tar.gz
   register: archive_stat
 
 - name: Download archive
   get_url:
     url=http://apache.crihan.fr/dist/cassandra/3.0.5/apache-cassandra-3.0.5-bin.tar.gz
-    dest=/tmp
+    dest=/home/indigo
   when: not archive_stat.stat.exists
 
 - name: Stat Cassandra
@@ -58,7 +58,7 @@
 - name: Extract Cassandra
   unarchive:
     copy=no
-    src=/tmp/apache-cassandra-3.0.5-bin.tar.gz
+    src=/home/indigo/apache-cassandra-3.0.5-bin.tar.gz
     dest=/var/lib
   become: yes
   become_method: sudo
