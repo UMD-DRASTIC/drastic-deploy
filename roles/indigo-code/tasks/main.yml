@@ -21,6 +21,9 @@
     update=yes
     version=develop
 
+- name: Copy settings
+  template: src=settings.py dest="{{ install_dir }}/indigo"
+
 - name: Restart the Indigo web service
   service: name=indigo-web state=restarted
   become: yes
