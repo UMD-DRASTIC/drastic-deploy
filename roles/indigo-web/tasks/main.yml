@@ -53,6 +53,11 @@
   become: yes
   become_method: sudo
 
+#- name: Copy Indigo-web init script (upstart)
+#  template: src=indigo-web.conf dest=/etc/init/indigo-web.conf
+#  become: yes
+#  become_method: sudo
+
 - name: Create sysconfig directory
   file: 
     path=/etc/sysconfig
