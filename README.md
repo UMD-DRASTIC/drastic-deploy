@@ -14,6 +14,11 @@ sudo mkdir ~indigo/.ssh
 sudo cat ~/.ssh/authorized_keys >> ~indigo/.ssh/authorized_keys # If you want to propagate ssh certificates
 ```
 
+Needed package:
+```
+sudo apt-get install python
+```
+
 #### Vagrant
 
 There is a Vagrantfile with this repo that enables you to install Indigo to a virtual machine with minimum fuss.
@@ -74,23 +79,30 @@ chown -R casssandra:cassandra /var/lib/cassandra
 e.g.
 ``` sudo apt-get purge cassandra ```
 
-* Create a ```hosts``` file containing the IP address of the servers.  It should look like..
+* Create a ```hosts``` file containing the IP address of the servers. It should look like..
 
 ```
 [indigo-databases]
-192.168.20.20 cassandra_interface=eth0
+node1
 
 [indigo-webservers]
-192.168.20.20
+node1
 
 [indigo:children]
 indigo-databases
 indigo-webservers
 ```
 
-Where the IP addresses should be replaced with the host name/IP address of each machine. For each [indigo-databases] you must provide the Ethernet interface on which Cassandra communicates. Usually this is eth0, but it may be something different on more complex topologies.
+Where the host name of each machine should be accessible through ssh (~/.ssh/config file).
+Some examples are present in the ```production``` and ```staging``` directory.
 
-* The default behavior is to use HTTPS. If needed this can be changed in the
+* Create an host_vars file for each machine in the host_vars directory
+
+For each [indigo-databases] you must provide the Ethernet interface on which 
+Cassandra communicates. Usually this is eth0, but it may be something different 
+on more complex topologies (It changed in Ubuntu > 15.10).
+
+* The default behavior is to use HTTP. If needed this can be changed in the
 webservers.yml file with the variable https_mode. The nginx server is using the
 SSL certificate in /etc/nginx/ssl/nginx.crt. If they are not present a self-signed
 version is created during deployment.
@@ -101,10 +113,12 @@ version is created during deployment.
 Run the deployment with the following command:
 
 ```
-ansible-playbook deploy_standalone.yml -i hosts --ask-become-pass
+ansible-playbook deploy_standalone.yml -i staging/hosts --ask-become-pass
 ```
 
-* Once started the script will ask for some details. The sudo-password for the user specified in deploy-standalone.yml, your bitbucket username and bitbucket password.  This is so that the script can retrieve the code from the private repositories.
+* Once started the script will ask for some details. The sudo-password for the
+user specified in deploy-standalone.yml, your bitbucket username and bitbucket
+password.  This is so that the script can retrieve the code from the private repositories.
 
 * Make a cup of tea.
 

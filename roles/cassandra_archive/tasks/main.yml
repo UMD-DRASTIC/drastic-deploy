@@ -42,23 +42,23 @@
 ##############################################################################
 
 - name: Stat Archive
-  stat: path=/home/indigo/apache-cassandra-3.0.5-bin.tar.gz
+  stat: path=/home/indigo/apache-cassandra-{{cassandra_version}}-bin.tar.gz
   register: archive_stat
 
 - name: Download archive
   get_url:
-    url=http://apache.crihan.fr/dist/cassandra/3.0.5/apache-cassandra-3.0.5-bin.tar.gz
+    url=http://apache.crihan.fr/dist/cassandra/{{cassandra_version}}/apache-cassandra-{{cassandra_version}}-bin.tar.gz
     dest=/home/indigo
   when: not archive_stat.stat.exists
 
 - name: Stat Cassandra
-  stat: path=/var/lib/apache-cassandra-3.0.5
+  stat: path=/var/lib/apache-cassandra-{{cassandra_version}}
   register: cassandra_stat
 
 - name: Extract Cassandra
   unarchive:
     copy=no
-    src=/home/indigo/apache-cassandra-3.0.5-bin.tar.gz
+    src=/home/indigo/apache-cassandra-{{cassandra_version}}-bin.tar.gz
     dest=/var/lib
   become: yes
   become_method: sudo
@@ -67,7 +67,7 @@
 - name: Create Cassandra directory link
   file: 
     path=/var/lib/cassandra
-    src=/var/lib/apache-cassandra-3.0.5
+    src=/var/lib/apache-cassandra-{{cassandra_version}}
     state=link
   become: yes
   become_method: sudo 
@@ -127,7 +127,7 @@
 
 - name: Change ownership of Cassandra directory
   file: 
-    path=/var/lib/apache-cassandra-3.0.5
+    path=/var/lib/apache-cassandra-{{cassandra_version}}
     state=directory
     owner=cassandra
     group=cassandra

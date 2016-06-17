@@ -2,4 +2,3 @@
 
 cassandra_data_dir: /var/lib/cassandra/data
 cassandra_commit_log_dir: /var/lib/cassandra/commitlog
-#cassandra_seed_server: indigo1
