@@ -20,6 +20,7 @@ sudo cat ~/.ssh/authorized_keys >> ~indigo/.ssh/authorized_keys
 Needed package for ansible:
 ```
 sudo apt-get install python
+```
 
 
 #### Access
