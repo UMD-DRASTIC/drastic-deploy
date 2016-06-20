@@ -2,7 +2,9 @@
 
 The following steps describe how to deploy Indigo to a remote (or local) server.
 
-[ Note, if you intend to run multiple servers, know beforehand the details of the networks, as it is best to set up the system with the 'real' network rather than using localhost. ]
+[ Note, if you intend to run multiple servers, know beforehand the details of
+  the networks, as it is best to set up the system with the 'real' network 
+  rather than using localhost. ]
 
 ####  PREREQUISTES
 Ansible expects a user _indigo_ to exist with sudo rights.  
@@ -10,47 +12,24 @@ e.g.
 ```
 sudo adduser  indigo
 sudo usermod -G sudo,adm indigo
+# If you want to propagate ssh certificates and simplify ssh access
 sudo mkdir ~indigo/.ssh
-sudo cat ~/.ssh/authorized_keys >> ~indigo/.ssh/authorized_keys # If you want to propagate ssh certificates
+sudo cat ~/.ssh/authorized_keys >> ~indigo/.ssh/authorized_keys 
 ```
 
-Needed package:
+Needed package for ansible:
 ```
 sudo apt-get install python
-```
 
-#### Vagrant
-
-There is a Vagrantfile with this repo that enables you to install Indigo to a virtual machine with minimum fuss.
-This is meant only for development and everything resides locally, so if you're deploying on a production machine,
-use the usual Ansible instructions below.
-
-First, get Vagrant:
-
-```
-sudo apt-get install vagrant
-```
-
-You will also need Ansible - get it as described below.
-
-Then in the root of this repo, run `vagrant up` If this is the first time you've run this command, it will go and fetch
-a Vagrant "box", which is just a VM base image. In this case it's a bare-bones Ubuntu Trusty 64-bit image.
-
-Vagrant will then go and run the Ansible script automatically, asking all the usual questions. If you change the
-Ansible provisioning scripts, just run `vagrant provision` to re-run Ansible.
-
-To pause the VM, run `vagrant suspend` and to resume it `vagrant resume`. `vagrant halt` will shut the VM down
-gracefully and `vagrant up` will restart it. Finally, `vagrant destroy` will shut down and delete the VM.
-
-There is a default user on the VM called `vagrant` and the password is `vagrant`, so you can ssh into it as normal.
 
 #### Access
 
 * Make sure you have access to the server via SSH, either directly or via a proxy.
 
+
 #### Pre-requisites
 
--- Install Ansible and GIT on the host from which you are installing ( not the target).
+-- Install Ansible and GIT on the host from which you are installing (not the target).
 
 ```
 sudo apt-get install software-properties-common
@@ -65,7 +44,8 @@ git clone <URL copied from above>
 
 #### Configuration
 
-* By default the user account on the server should be 'indigo' who should have sudo access.  If different then the user field in deploy-standalone.yml should be changed.
+* By default the user account on the server should be 'indigo' who should have
+sudo access. If different then the user field in deploy-standalone.yml should be changed.
 
 * Cassandra stores it data by default in /var/lib/cassandra -- this should be redirected to an appropriate storage volume, either via a symbolic link or using something like
 ```
@@ -193,14 +173,29 @@ seeds: "<ip1>[,<ip2>]"
 
 - Restart Cassandra, leave it to sort itself out by waiting for all the nodes to show up in the output from the command line ```nodetool status```  and be in state **UN** and then run ```nodetool cleanup``` on all the nodes in the cluster ( which may take som time, so perhaps best done in TMUX).
  ]
- 
-### Install on lxc container
 
-For some reasons Cassandra configuration is failing when trying to deploy on a
-lxc container. If you experiment a connection error when ansible is trying to 
-finish Cassandra initialization you can try to log on the container, and restart
-cassandra manually, it should now listen on eth0 correctly rather than 127.0.0.1.
+### Vagrant
 
-For the listener the Docker install is failing on the first time but works if
-ansible is restarted
+There is a Vagrantfile with this repo that enables you to install Indigo to a virtual machine with minimum fuss.
+This is meant only for development and everything resides locally, so if you're deploying on a production machine,
+use the usual Ansible instructions below.
+
+First, get Vagrant:
+
+```
+sudo apt-get install vagrant
+```
+
+You will also need Ansible - get it as described below.
+
+Then in the root of this repo, run `vagrant up` If this is the first time you've run this command, it will go and fetch
+a Vagrant "box", which is just a VM base image. In this case it's a bare-bones Ubuntu Trusty 64-bit image.
+
+Vagrant will then go and run the Ansible script automatically, asking all the usual questions. If you change the
+Ansible provisioning scripts, just run `vagrant provision` to re-run Ansible.
+
+To pause the VM, run `vagrant suspend` and to resume it `vagrant resume`. `vagrant halt` will shut the VM down
+gracefully and `vagrant up` will restart it. Finally, `vagrant destroy` will shut down and delete the VM.
+
+There is a default user on the VM called `vagrant` and the password is `vagrant`, so you can ssh into it as normal.
 
