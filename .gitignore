@@ -1,6 +1,7 @@
 hosts
 host_vars
 staging
+deploy_standalone.retry
 
 # IntelliJ
 .idea/

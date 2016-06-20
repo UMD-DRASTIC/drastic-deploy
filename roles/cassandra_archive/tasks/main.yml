@@ -158,13 +158,15 @@
   become: yes
   become_method: sudo
 
+- meta: flush_handlers
+
 - name: Copy Cassandra init script
   template: src=cassandra.service dest=/etc/systemd/system/cassandra.service
   become: yes
   become_method: sudo
 
 - name: Start Cassandra
-  service: name=cassandra state=running
+  service: name=cassandra.service state=running
   become: yes
   become_method: sudo
 
@@ -174,3 +176,12 @@
   until: cqlsh_ready.rc == 0
   delay: 10
   retries: 5
+  when: cassandra_interface is defined
+
+- name: Waiting for Cassandra to finish initialization 2
+  command: /usr/local/bin/cqlsh  -e exit
+  register: cqlsh_ready
+  until: cqlsh_ready.rc == 0
+  delay: 10
+  retries: 5
+  when: cassandra_interface is undefined

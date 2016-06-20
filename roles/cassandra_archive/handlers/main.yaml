@@ -1,4 +1,6 @@
 ---
 
 - name: Restart Cassandra
-  service: name=cassandra state=restarted
+  service: name=cassandra.service state=restarted
+  become: yes
+  become_method: sudo
