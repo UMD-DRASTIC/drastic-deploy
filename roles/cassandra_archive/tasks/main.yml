@@ -31,6 +31,7 @@
     - python-pip
     - git
     - curl
+    - ntp
     # For client machine ...
     - libev4
     - libev-dev
@@ -47,7 +48,7 @@
 
 - name: Download archive
   get_url:
-    url=http://apache.crihan.fr/dist/cassandra/{{cassandra_version}}/apache-cassandra-{{cassandra_version}}-bin.tar.gz
+    url=http://mirrors.ibiblio.org/apache/cassandra/{{cassandra_version}}/apache-cassandra-{{cassandra_version}}-bin.tar.gz
     dest=/home/indigo
   when: not archive_stat.stat.exists
 
@@ -65,12 +66,12 @@
   when: not cassandra_stat.stat.exists
 
 - name: Create Cassandra directory link
-  file: 
+  file:
     path=/var/lib/cassandra
     src=/var/lib/apache-cassandra-{{cassandra_version}}
     state=link
   become: yes
-  become_method: sudo 
+  become_method: sudo
 
 - name: Create Cassandra User
   user:
@@ -89,6 +90,21 @@
     state=present
   become: yes
   become_method: sudo
+
+- name: Set Cassandra User Limits
+  copy: src=files/cassandra.conf dest=/etc/security/limits.d/cassandra.conf
+
+- name: Set Virtual Memory Resource Limit
+  lineinfile: dest=/etc/sysctl.conf line="vm.max_map_count = 1048575"
+
+- name: Enable PAM Session Limits
+  lineinfile:
+    dest=/etc/pam_d/su
+    line="session    required   pam_limits.so"
+    insertafter="# session    required   pam_limits.so"
+
+- name: Remove Swap Space
+  lineinfile: dest=/etc/fstab state=absent regexp="  swap  "
 
 - name: Create Cassandra log directory
   file: path=/var/log/cassandra/log state=directory mode=0770
@@ -126,7 +142,7 @@
   become_method: sudo
 
 - name: Change ownership of Cassandra directory
-  file: 
+  file:
     path=/var/lib/apache-cassandra-{{cassandra_version}}
     state=directory
     owner=cassandra
@@ -136,12 +152,12 @@
   become_method: sudo
 
 - name: Create cqlsh link
-  file: 
+  file:
     path=/usr/local/bin/cqlsh
     src=/var/lib/cassandra/bin/cqlsh
     state=link
   become: yes
-  become_method: sudo 
+  become_method: sudo
 
 
 
