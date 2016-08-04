@@ -3,11 +3,10 @@ Description=Cassandra
 After=network.target
 
 [Service]
-Type=forking
 PIDFile=/var/run/cassandra/cassandra.pid
 User=cassandra
 Group=cassandra
-ExecStart=/var/lib/cassandra/bin/cassandra -p /var/run/cassandra/cassandra.pid
+ExecStart=/var/lib/cassandra/bin/cassandra -f -p /var/run/cassandra/cassandra.pid
 StandardOutput=journal
 StandardError=journal
 LimitNOFILE=infinity

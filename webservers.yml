@@ -1,4 +1,8 @@
 ---
+- hosts:  indigo-databases
+  tasks:
+  - debug: msg="Gathers the facts about db servers (IP addresses mainly)"
+
 - name: Install indigo webserver
   remote_user: indigo
   hosts: indigo-webservers
@@ -7,7 +11,7 @@
 
   pre_tasks:
     - name: Copy bitbucket deployment key to the server
-      copy: src=files/indigo_deployment_private_key dest="{{ install_dir }}/.ssh/indigo_deployment_private_key" mode=0600
+      copy: content={{ indigo_deployment_private_key }} dest="{{ install_dir }}/.ssh/indigo_deployment_private_key" mode=0600
 
   roles:
     - indigo-web

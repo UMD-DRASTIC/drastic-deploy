@@ -2,7 +2,7 @@
 cassandra-1
 
 [indigo-webservers]
-cassandra-1
+indigo-web
 
 [indigo:children]
 indigo-databases

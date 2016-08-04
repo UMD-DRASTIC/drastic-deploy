@@ -1,5 +1,5 @@
 - name: Copy bitbucket deployment key to the server
-  copy: src=files/indigo_deployment_private_key dest="{{ install_dir }}/.ssh/indigo_deployment_private_key" mode=0600
+  copy: content={{ indigo_deployment_private_key }} dest="{{ install_dir }}/.ssh/indigo_deployment_private_key" mode=0600
 
 - name: Clone indigo git repo
   git:

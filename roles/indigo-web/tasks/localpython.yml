@@ -1,0 +1,35 @@
+- apt: state=build-dep name=python2.7 update_cache=yes
+  become: yes
+
+- name: Stat Python Installer Archive
+  stat: path=/tmp/Python-2.7.10.tgz
+  register: archive_stat
+
+- name: Download Python Installer Archive
+  get_url:
+    url=http://www.python.org/ftp/python/2.7.10/Python-2.7.10.tgz
+    dest=/tmp
+  when: not archive_stat.stat.exists
+
+- name: Stat Python Installer Dir
+  stat: path=/home/indigo/Python-2.7.10
+  register: installerdir_stat
+
+- name: Extract Python Installer Dir
+  unarchive:
+    copy=no
+    src=/tmp/Python-2.7.10.tgz
+    dest=/home/indigo
+  become: yes
+  become_method: sudo
+  when: not installerdir_stat.stat.exists
+
+- file: path=/home/indigo/.localpython state=directory
+
+- command: "./configure --prefix=/home/indigo/.localpython"
+  args:
+    chdir: /home/indigo/Python-2.7.10
+
+- command: make install
+  args:
+    chdir: /home/indigo/Python-2.7.10

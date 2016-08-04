@@ -4,6 +4,15 @@
 # This must be Oracle's Java, and also should use libjna for performance.
 ##############################################################################
 
+- name: Check directories
+  stat: path={{ item }}
+  register: st
+  with_items: '{{ cassandra_data_dirs }}'
+
+- name: Complain
+  fail: msg='Cassandra data directory {{ item.item }} does not exist or is not set properly'
+  when: item.stat.isdir is not defined or not item.stat.isdir
+  with_items: "{{ st.results }}"
 
 - name: Installation dependencies
   apt: pkg=python-apt state=installed update_cache=yes force=yes
@@ -37,6 +46,8 @@
     - libev-dev
     - build-essential
     - python-dev
+
+- pip: name=cassandra-driver
 
 ##############################################################################
 # Cassandra
@@ -93,28 +104,35 @@
 
 - name: Set Cassandra User Limits
   copy: src=files/cassandra.conf dest=/etc/security/limits.d/cassandra.conf
+  become: yes
 
 - name: Set Virtual Memory Resource Limit
   lineinfile: dest=/etc/sysctl.conf line="vm.max_map_count = 1048575"
+  become: yes
 
 - name: Enable PAM Session Limits
   lineinfile:
-    dest=/etc/pam_d/su
+    dest=/etc/pam.d/su
     line="session    required   pam_limits.so"
     insertafter="# session    required   pam_limits.so"
+  become: yes
 
 - name: Remove Swap Space
   lineinfile: dest=/etc/fstab state=absent regexp="  swap  "
+  become: yes
 
 - name: Create Cassandra log directory
   file: path=/var/log/cassandra/log state=directory mode=0770
   become: yes
   become_method: sudo
 
-- name: Create Cassandra data directory
-  file: path=/var/lib/cassandra/data state=directory mode=0775
+# Directories were already checked to exist at the top. We don't want to create
+# new directories when remote volumes are not properly mounted yet.
+- name: Set ownership and permissions of Cassandra data directory
+  file: path={{ item }} state=directory mode=0775 owner=cassandra group=cassandra
   become: yes
   become_method: sudo
+  with_items: '{{ cassandra_data_dirs }}'
 
 - name: Create Cassandra cache directory
   file: path=/var/lib/cassandra/saved_caches state=directory mode=0775
@@ -174,20 +192,23 @@
   become: yes
   become_method: sudo
 
-- meta: flush_handlers
-
 - name: Copy Cassandra init script
   template: src=cassandra.service dest=/etc/systemd/system/cassandra.service
   become: yes
   become_method: sudo
+  notify: systemd daemon-reload
+
+- meta: flush_handlers
 
 - name: Start Cassandra
-  service: name=cassandra.service state=running
+  service: name=cassandra state=started enabled=yes
   become: yes
   become_method: sudo
 
 - name: Waiting for Cassandra to finish initialization
   command: /usr/local/bin/cqlsh "{{ hostvars[inventory_hostname]['ansible_' ~ cassandra_interface]['ipv4']['address'] }}" -e exit
+  environment:
+    CQLSH_NO_BUNDLED: TRUE
   register: cqlsh_ready
   until: cqlsh_ready.rc == 0
   delay: 10
@@ -195,7 +216,7 @@
   when: cassandra_interface is defined
 
 - name: Waiting for Cassandra to finish initialization 2
-  command: /usr/local/bin/cqlsh  -e exit
+  command: CQLSH_NO_BUNDLED=TRUE /usr/local/bin/cqlsh  -e exit
   register: cqlsh_ready
   until: cqlsh_ready.rc == 0
   delay: 10

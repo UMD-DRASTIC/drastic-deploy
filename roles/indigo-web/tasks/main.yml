@@ -16,6 +16,7 @@
     - libldap2-dev
     - libsasl2-dev
     - virtualenv
+    - python-dev
   become: yes
   become_method: sudo
 
@@ -25,8 +26,10 @@
   become: yes
   become_method: sudo
 
+- include: localpython.yml
+
 - name: Manually create the webapp virtualenv
-  command: virtualenv "{{ install_dir }}/web" creates="{{ install_dir }}/web"
+  command: virtualenv -p $HOME/.localpython/bin/python2.7 "{{ install_dir }}/web" creates="{{ install_dir }}/web"
 
 - name: Clone git repo
 #  git: repo="/home/alloy/tmp/indigo_git/indigo-web.git"
@@ -59,11 +62,11 @@
 #  become_method: sudo
 
 - name: Create sysconfig directory
-  file: 
+  file:
     path=/etc/sysconfig
     state=directory
   become: yes
-  become_method: sudo 
+  become_method: sudo
 
 - name: Copy Indigo-web init script variables
   template: src=indigo-env dest=/etc/sysconfig/indigo-env
@@ -72,6 +75,8 @@
 
 - name: Create the cassandra database
   command: "{{ install_dir }}/web/bin/indigo create -c settings"
+  environment:
+    CQLSH_NO_BUNDLED: TRUE
 
 - name: Collect static
   command: "{{ install_dir }}/web/bin/python {{ install_dir }}/web/project/manage.py collectstatic --noinput"

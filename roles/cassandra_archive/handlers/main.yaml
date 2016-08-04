@@ -1,5 +1,11 @@
 ---
 
+# Note that handlers are run in the order defined here.
+- name: systemd daemon-reload
+  command: systemd daemon-reload
+  become: yes
+  become_method: sudo
+
 - name: Restart Cassandra
   service: name=cassandra.service state=restarted
   become: yes
