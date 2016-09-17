@@ -1,14 +1,14 @@
 ---
-
-- name: Ensure we get the latest Mosquitto MQTT broker
-  apt_repository: repo='ppa:mosquitto-dev/mosquitto-ppa'
-  sudo: yes
+# No longer needed on Xenial release
+# - name: Ensure we get the latest Mosquitto MQTT broker
+#   apt_repository: repo='ppa:mosquitto-dev/mosquitto-ppa'
+#   sudo: yes
 
 - name: Install useful packages
   apt: pkg={{ item }} state=installed install_recommends=no
   with_items:
     - mosquitto
-  sudo: true
+  sudo: yes
 
 - name: Start the MQTT broker
   service: name=mosquitto state=started
@@ -18,16 +18,9 @@
   file: name='{{ install_dir }}/scripts_cache' state=directory
 
 - name: Get the latest Docker
-  command: curl -sSL -o '{{ temp_dir }}/install_docker.sh' https://get.docker.com/
+  get_url: dest='{{ temp_dir }}/install_docker.sh' url=https://get.docker.com/ mode=0755
   sudo: yes
   register: getdocker
-  args:
-    creates: '{{ temp_dir }}/install_docker.sh'
-
-- name: Futz around with Docker
-  command: chmod +x '{{ temp_dir }}/install_docker.sh'
-  sudo: yes
-  when: getdocker.changed
 
 - name: Install Docker
   command: '{{ temp_dir }}/install_docker.sh'
@@ -59,22 +52,22 @@
   environment:
     TMPDIR: '{{ temp_dir }}'
 
-- name: Install indigo lib
+- name: Install drastic lib
   shell: "{{ install_dir }}/listener/bin/python setup.py develop"
   environment:
     TMPDIR: '{{ temp_dir }}'
   args:
-    chdir: "{{ install_dir }}/indigo"
+    chdir: "{{ install_dir }}/drastic"
 
-- name: Copy listener init script
-  template: src=indigo-listener.conf dest=/etc/init/indigo-listener.conf
+- name: Copy listener service configuration
+  template: src=drastic-listener.service dest=/etc/systemd/system/drastic-listener.service
   sudo: yes
 
 - name: Start the listener
-  service: name=indigo-listener state=restarted
+  service: name=drastic-listener state=restarted
   sudo: yes
 
-- name: Restart the Indigo web service
-  service: name=indigo-web state=restarted
+- name: Restart the Drastic web service
+  service: name=drastic-web state=restarted
   sudo: yes
-  when: indigo-web-installed is defined
+  when: drastic-web-installed is defined

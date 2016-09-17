@@ -1,5 +1,5 @@
 ---
 
-install_dir: /home/indigo
+install_dir: /home/drastic
 temp_dir: /tmp
 production: false

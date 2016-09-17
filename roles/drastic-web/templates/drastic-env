@@ -1,4 +1,4 @@
-# Shared environment for Indigo services
+# Shared environment for Drastic services
 CQLENG_ALLOW_SCHEMA_MANAGEMENT=1
 CQLSH_NO_BUNDLED=TRUE
 AUTH_LDAP_SERVER_URI="ldap://ldap.umd.edu"

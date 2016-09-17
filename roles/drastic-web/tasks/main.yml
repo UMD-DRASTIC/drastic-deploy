@@ -1,6 +1,6 @@
 ---
 ##############################################################################
-# Create the virtualenv where we will host the indigo-web app
+# Create the virtualenv where we will host the drastic-web app
 ##############################################################################
 
 - name: update apt-cache
@@ -8,7 +8,7 @@
   become: yes
   become_method: sudo
 
-- name: install packages for indigo web-ui
+- name: install packages for drastic web-ui
   apt: pkg={{ item }} state=installed
   with_items:
     - nginx
@@ -32,10 +32,10 @@
   command: virtualenv -p $HOME/.localpython/bin/python2.7 "{{ install_dir }}/web" creates="{{ install_dir }}/web"
 
 - name: Clone git repo
-#  git: repo="/home/alloy/tmp/indigo_git/indigo-web.git"
-  git: repo="git@bitbucket.org:archivea/indigo-web.git"
+#  git: repo="/home/alloy/tmp/drastic_git/drastic-web.git"
+  git: repo="git@bitbucket.org:archivea/drastic-web.git"
        dest="{{ install_dir }}/web/project"
-       key_file="{{ install_dir }}/.ssh/indigo_deployment_private_key"
+       key_file="{{ install_dir }}/.ssh/drastic_deployment_private_key"
        accept_hostkey=yes
        force=yes
        update=yes
@@ -46,18 +46,18 @@
     requirements="{{ install_dir }}/web/project/requirements.txt"
     virtualenv="{{ install_dir }}/web"
 
-- name: Install indigo lib into webapp
+- name: Install drastic lib into webapp
   shell: "{{ install_dir }}/web/bin/python setup.py develop"
   args:
-    chdir: "{{ install_dir }}/indigo"
+    chdir: "{{ install_dir }}/drastic"
 
-- name: Copy Indigo-web init script
-  template: src=indigo-web.service dest=/etc/systemd/system/indigo-web.service
+- name: Copy Drastic-web init script
+  template: src=drastic-web.service dest=/etc/systemd/system/drastic-web.service
   become: yes
   become_method: sudo
 
-#- name: Copy Indigo-web init script (upstart)
-#  template: src=indigo-web.conf dest=/etc/init/indigo-web.conf
+#- name: Copy Drastic-web init script (upstart)
+#  template: src=drastic-web.conf dest=/etc/init/drastic-web.conf
 #  become: yes
 #  become_method: sudo
 
@@ -68,13 +68,13 @@
   become: yes
   become_method: sudo
 
-- name: Copy Indigo-web init script variables
-  template: src=indigo-env dest=/etc/sysconfig/indigo-env
+- name: Copy Drastic-web init script variables
+  template: src=drastic-env dest=/etc/sysconfig/drastic-env
   become: yes
   become_method: sudo
 
 - name: Create the cassandra database
-  command: "{{ install_dir }}/web/bin/indigo create -c settings"
+  command: "{{ install_dir }}/web/bin/drastic create -c settings"
   environment:
     CQLSH_NO_BUNDLED: TRUE
 
@@ -85,25 +85,25 @@
   django_manage: command=syncdb app_path="{{ install_dir }}/web/project" virtual_env="{{ install_dir }}/web/"
 
 - name: Set up database
-  command: "{{ install_dir }}/web/bin/python {{ install_dir }}/web/bin/indigo create"
+  command: "{{ install_dir }}/web/bin/python {{ install_dir }}/web/bin/drastic create"
 
 #- name: Create default users
 #  script: init_user.expect "{{ install_dir }}" "{{ item.user_name }}" "{{ item.password }}" "{{ item.admin }}"
 #  ignore_errors: yes
 #  with_items:
-#    - { user_name: indigo, password: indigo, admin: y }
+#    - { user_name: drastic, password: drastic, admin: y }
 #    - { user_name: guest, password: guest, admin: n }
 
 #- name: Create default groups
-#  command: "{{ install_dir }}/web/bin/python {{ install_dir }}/web/bin/indigo group-create {{ item.group }}"
+#  command: "{{ install_dir }}/web/bin/python {{ install_dir }}/web/bin/drastic group-create {{ item.group }}"
 #  with_items:
-#    - { group: indigo }
+#    - { group: drastic }
 #    - { group: guest }
 
 #- name: Add users to groups
-#  command: "{{ install_dir }}/web/bin/python {{ install_dir }}/web/bin/indigo group-add-user {{ item.group }} {{ item.user }}"
+#  command: "{{ install_dir }}/web/bin/python {{ install_dir }}/web/bin/drastic group-add-user {{ item.group }} {{ item.user }}"
 #  with_items:
-#    - { group: indigo, user: indigo }
+#    - { group: drastic, user: drastic }
 #    - { group: guest, user: guest }
 
 - name: Install packages for LDAP
@@ -126,12 +126,12 @@
   when: LDAP_SERVER_URI is defined
 
 - name: Create HTTP nginx config
-  template: src=indigo-web.nginx dest=/etc/nginx/sites-available/indigo_http
+  template: src=drastic-web.nginx dest=/etc/nginx/sites-available/drastic_http
   become: yes
   become_method: sudo
 
 - name: Create HTTPS nginx config
-  template: src=indigo-web-ssl.nginx dest=/etc/nginx/sites-available/indigo_https
+  template: src=drastic-web-ssl.nginx dest=/etc/nginx/sites-available/drastic_https
   become: yes
   become_method: sudo
 
@@ -153,13 +153,13 @@
     command: openssl req -new -x509 -sha256 -newkey rsa:2048 -days 365 -nodes -out nginx.crt -keyout nginx.key
     chdir: /etc/nginx/ssl
     responses:
-      Country Name (.*): "UK"
-      State (.*): "Merseyside"
-      Locality (.*): "Liverpool"
-      Organization Name (.*): "Archive Analytics"
-      Organizational Unit Name(.*): ""
-      Common Name (.*): "Indigo"
-      Email (.*): ""
+      Country Name (.*): "US"
+      State (.*): "Maryland"
+      Locality (.*): "College Park"
+      Organization Name (.*): "University of Maryland"
+      Organizational Unit Name(.*): "School of Information Studies"
+      Common Name (.*): "Team Drastic"
+      Email (.*): "jansen@umd.edu"
   when: (ssl_certificate.stat.exists == False) or
         (ssl_key.stat.exists == False)
   become: yes
@@ -171,25 +171,25 @@
   become_method: sudo
 
 - name: Delete nginx config for https mode when http mode
-  file: path=/etc/nginx/sites-enabled/indigo_https state=absent
+  file: path=/etc/nginx/sites-enabled/drastic_https state=absent
   become: yes
   become_method: sudo
   when: not https_mode
 
 - name: Delete nginx config for http mode when https mode
-  file: path=/etc/nginx/sites-enabled/indigo_http state=absent
+  file: path=/etc/nginx/sites-enabled/drastic_http state=absent
   become: yes
   become_method: sudo
   when: https_mode
 
 - name: Copy nginx config for https mode
-  file: src=/etc/nginx/sites-available/indigo_https dest=/etc/nginx/sites-enabled/indigo_https state=link
+  file: src=/etc/nginx/sites-available/drastic_https dest=/etc/nginx/sites-enabled/drastic_https state=link
   become: yes
   become_method: sudo
   when: https_mode
 
 - name: Copy nginx config for http mode
-  file: src=/etc/nginx/sites-available/indigo_http dest=/etc/nginx/sites-enabled/indigo_http state=link
+  file: src=/etc/nginx/sites-available/drastic_http dest=/etc/nginx/sites-enabled/drastic_http state=link
   become: yes
   become_method: sudo
   when: not https_mode
@@ -199,8 +199,8 @@
   become: yes
   become_method: sudo
 
-- name: Start the Indigo web service
-  service: name=indigo-web state=started
+- name: Start the Drastic web service
+  service: name=drastic-web state=started
   become: yes
   become_method: sudo
-  register: indigo-web-installed
+  register: drastic-web-installed

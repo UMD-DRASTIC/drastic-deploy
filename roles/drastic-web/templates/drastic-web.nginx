@@ -4,7 +4,7 @@ upstream gunicorn {
 
 server {
     listen  80;
-    server_name indigo;
+    server_name drastic;
 
 #    client_max_body_size 100m;
     client_max_body_size 0;

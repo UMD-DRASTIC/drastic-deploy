@@ -1,17 +1,17 @@
 # This is the default ansible 'hosts' file.
 
-[indigo-databases]
-indigo1
-indigo2
-indigo3
-indigo4
+[drastic-databases]
+drastic1
+drastic2
+drastic3
+drastic4
 
-[indigo-webservers]
-indigo1
-indigo2
-indigo3
-indigo4
+[drastic-webservers]
+drastic1
+drastic2
+drastic3
+drastic4
 
-[indigo:children]
-indigo-databases
-indigo-webservers 
+[drastic:children]
+drastic-databases
+drastic-webservers 

@@ -1,22 +1,22 @@
 ---
-- hosts:  indigo-databases
+- hosts:  drastic-databases
   tasks:
   - debug: msg="Gathers the facts about db servers (IP addresses mainly)"
 
-- name: Install indigo webserver
-  remote_user: indigo
-  hosts: indigo-webservers
+- name: Install drastic webserver
+  remote_user: drastic
+  hosts: drastic-webservers
   vars:
     https_mode: false
 
   pre_tasks:
     - name: Copy bitbucket deployment key to the server
-      copy: content={{ indigo_deployment_private_key }} dest="{{ install_dir }}/.ssh/indigo_deployment_private_key" mode=0600
+      copy: content={{ drastic_deployment_private_key }} dest="{{ install_dir }}/.ssh/drastic_deployment_private_key" mode=0600
 
   roles:
-    - indigo-web
-#    - indigo-listener
+    - drastic-web
+    - drastic-listener
 
   post_tasks:
     - name: Delete bitbucket deployment key
-      file: path="{{ install_dir }}/.ssh/indigo_deployment_private_key" state=absent
+      file: path="{{ install_dir }}/.ssh/drastic_deployment_private_key" state=absent

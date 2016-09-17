@@ -12,24 +12,24 @@
   when: not archive_stat.stat.exists
 
 - name: Stat Python Installer Dir
-  stat: path=/home/indigo/Python-2.7.10
+  stat: path=/home/drastic/Python-2.7.10
   register: installerdir_stat
 
 - name: Extract Python Installer Dir
   unarchive:
     copy=no
     src=/tmp/Python-2.7.10.tgz
-    dest=/home/indigo
+    dest=/home/drastic
   become: yes
   become_method: sudo
   when: not installerdir_stat.stat.exists
 
-- file: path=/home/indigo/.localpython state=directory
+- file: path=/home/drastic/.localpython state=directory
 
-- command: "./configure --prefix=/home/indigo/.localpython"
+- command: "./configure --prefix=/home/drastic/.localpython"
   args:
-    chdir: /home/indigo/Python-2.7.10
+    chdir: /home/drastic/Python-2.7.10
 
 - command: make install
   args:
-    chdir: /home/indigo/Python-2.7.10
+    chdir: /home/drastic/Python-2.7.10

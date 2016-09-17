@@ -1,7 +1,7 @@
 ---
 - name: Install a Cassandra database node
-  remote_user: indigo
-  hosts: indigo-databases
+  remote_user: drastic
+  hosts: drastic-databases
 
   roles:
     - cassandra_archive

@@ -1,0 +1,15 @@
+[Unit]
+Description=Drastic Listener Service
+After=drastic-web.service
+
+[Service]
+User={{ ansible_user_id }}
+Group=nogroup
+Environment="CQLENG_ALLOW_SCHEMA_MANAGEMENT=1"
+EnvironmentFile=/etc/sysconfig/drastic-env
+Restart=on-failure
+WorkingDirectory={{ install_dir }}
+ExecStart={{ install_dir }}/listener/bin/python {{ install_dir }}/drastic/drastic/listener.py scripts_cache /scripts >> {{ install_dir }}/log/drastic-listener.log 2>&1
+
+[Install]
+WantedBy=multi-user.target

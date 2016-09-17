@@ -1,20 +1,20 @@
-# Indigo Deployment
+# Drastic Deployment
 
-The following steps describe how to deploy Indigo to a remote (or local) server.
+The following steps describe how to deploy Drastic to a remote (or local) server.
 
 [ Note, if you intend to run multiple servers, know beforehand the details of
   the networks, as it is best to set up the system with the 'real' network 
   rather than using localhost. ]
 
 ####  PREREQUISTES
-Ansible expects a user _indigo_ to exist with sudo rights.  
+Ansible expects a user _drastic_ to exist with sudo rights.  
 e.g. 
 ```
-sudo adduser  indigo
-sudo usermod -G sudo,adm indigo
+sudo adduser  drastic
+sudo usermod -G sudo,adm drastic
 # If you want to propagate ssh certificates and simplify ssh access
-sudo mkdir ~indigo/.ssh
-sudo cat ~/.ssh/authorized_keys >> ~indigo/.ssh/authorized_keys 
+sudo mkdir ~drastic/.ssh
+sudo cat ~/.ssh/authorized_keys >> ~drastic/.ssh/authorized_keys 
 ```
 
 Needed package for ansible:
@@ -45,7 +45,7 @@ git clone <URL copied from above>
 
 #### Configuration
 
-* By default the user account on the server should be 'indigo' who should have
+* By default the user account on the server should be 'drastic' who should have
 sudo access. If different then the user field in deploy-standalone.yml should be changed.
 
 * Cassandra stores it data by default in /var/lib/cassandra -- this should be redirected to an appropriate storage volume, either via a symbolic link or using something like
@@ -63,15 +63,15 @@ e.g.
 * Create a ```hosts``` file containing the IP address of the servers. It should look like..
 
 ```
-[indigo-databases]
+[drastic-databases]
 node1
 
-[indigo-webservers]
+[drastic-webservers]
 node1
 
-[indigo:children]
-indigo-databases
-indigo-webservers
+[drastic:children]
+drastic-databases
+drastic-webservers
 ```
 
 Where the host name of each machine should be accessible through ssh (~/.ssh/config file).
@@ -79,7 +79,7 @@ Some examples are present in the ```production``` and ```staging``` directory.
 
 * Create an host_vars file for each machine in the host_vars directory
 
-For each [indigo-databases] you must provide the Ethernet interface on which 
+For each [drastic-databases] you must provide the Ethernet interface on which 
 Cassandra communicates. Usually this is eth0, but it may be something different 
 on more complex topologies (It changed in Ubuntu > 15.10).
 
@@ -108,28 +108,28 @@ password.  This is so that the script can retrieve the code from the private rep
 
 Unfortunately Cassandra can take a while to start. The process list will show the Java process running although Cassandra is still not available. To resolve this the script pauses once the Cassandra installation is complete.
 
-On some occasions the indigo-node fails to start after installation.  This is being investigated.
+On some occasions the drastic-node fails to start after installation.  This is being investigated.
 ** As a temporary workaround execute
-```sudo service indigo-web start```
+```sudo service drastic-web start```
 on the target machine if the web-service fails to work. **
 
 ### Post install tasks
 Create Users
 
-See this [LINK](https://bitbucket.org/archivea/indigo) for full details, but the short version is
+See this [LINK](https://bitbucket.org/archivea/drastic) for full details, but the short version is
 ```
-ssh indigo@<target>
-export INDIGO_CONFIG=settings
+ssh drastic@<target>
+export DRASTIC_CONFIG=settings
 source ~/web/bin/activate
-indigo user-create
+drastic user-create
 # and you probably want to create a group or two .... especially since you need to for ingesting
-indigo group_create <group_name>  <user_name_that_owns_group>
+drastic group_create <group_name>  <user_name_that_owns_group>
 ```
 If you get an error on logging in then on the target machine
 ```
 deactivate
-. /usr/lib/indigo/web/bin/activate
-cd /usr/lib/indigo/web/project
+. /usr/lib/drastic/web/bin/activate
+cd /usr/lib/drastic/web/project
 sudo ../bin/python manage.py syncdb
 
 And just choose No if it asks any questions...
@@ -137,13 +137,13 @@ And just choose No if it asks any questions...
 
 ***AGENT CONFIG***
 
-The file /etc/init/indigo-agent needs to have these lines ( the last one should be there, the first two may not ).
+The file /etc/init/drastic-agent needs to have these lines ( the last one should be there, the first two may not ).
 ```
 
 env CQLENG_ALLOW_SCHEMA_MANAGEMENT=1
-env AGENT_CONFIG=/usr/lib/indigo/agent/project/agent.config
+env AGENT_CONFIG=/usr/lib/drastic/agent/project/agent.config
 
-exec /usr/lib/indigo/agent/bin/python /usr/lib/indigo/agent/project/wsgi....
+exec /usr/lib/drastic/agent/bin/python /usr/lib/drastic/agent/project/wsgi....
 ```
 #### Cluster set up.
 
@@ -177,7 +177,7 @@ seeds: "<ip1>[,<ip2>]"
 
 ### Vagrant
 
-There is a Vagrantfile with this repo that enables you to install Indigo to a virtual machine with minimum fuss.
+There is a Vagrantfile with this repo that enables you to install Drastic to a virtual machine with minimum fuss.
 This is meant only for development and everything resides locally, so if you're deploying on a production machine,
 use the usual Ansible instructions below.
 

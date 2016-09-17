@@ -3,8 +3,8 @@
 # system
 # ansible-playbook deploy_code.yml -i staging/staging  --ask-become-pass
 
-- hosts: indigo
-  remote_user: indigo
+- hosts: drastic
+  remote_user: drastic
   roles:
-    - indigo-code
+    - drastic-code
     

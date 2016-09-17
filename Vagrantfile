@@ -9,7 +9,7 @@ Vagrant.configure(2) do |config|
 #    config.vm.box = "naelyn/ubuntu-trusty64-libvirt"
 #  end
 
-  config.vm.define "indigo"
+  config.vm.define "drastic"
 
   # Create a forwarded port mapping which allows access to a specific port
   # within the machine from a port on the host machine. In the example below,
@@ -26,10 +26,10 @@ Vagrant.configure(2) do |config|
   # argument is a set of non-required options.
   # config.vm.synced_folder "../data", "/vagrant_data"
 
-  config.vm.hostname = "indigo"
+  config.vm.hostname = "drastic"
 
   config.vm.provider "virtualbox" do |vb|
-    vb.name = "Indigo"
+    vb.name = "Drastic"
     vb.memory = "2048"
   end
 
@@ -41,17 +41,17 @@ Vagrant.configure(2) do |config|
     ansible.playbook = "deploy_standalone.yml"
 
     ansible.groups = {
-      "indigo-databases" => ["indigo"],
-      "indigo-webservers" => ["indigo"],
-      "indigo:children" => ["indigo-databases", "indigo-webservers"]
+      "drastic-databases" => ["drastic"],
+      "drastic-webservers" => ["drastic"],
+      "drastic:children" => ["drastic-databases", "drastic-webservers"]
     }
 
-    # We override these variables to account for the default user being "vagrant" rather than "indigo".
+    # We override these variables to account for the default user being "vagrant" rather than "drastic".
     ansible.extra_vars = {
       ansible_ssh_user: "vagrant",
       install_dir: "/home/vagrant/",
       cassandra_interface: "eth0",
-#      cassandra_seed_server: "indigo",
+#      cassandra_seed_server: "drastic",
       cassandra_replication_factor: "1",
       LDAP_SERVER_URI: "ldap://ldap.umd.edu",
       LDAP_USER_DN_TEMPLATE: "uid=%(user)s,ou=people,dc=umd,dc=edu"

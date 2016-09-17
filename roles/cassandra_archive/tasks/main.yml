@@ -54,13 +54,13 @@
 ##############################################################################
 
 - name: Stat Archive
-  stat: path=/home/indigo/apache-cassandra-{{cassandra_version}}-bin.tar.gz
+  stat: path=/home/drastic/apache-cassandra-{{cassandra_version}}-bin.tar.gz
   register: archive_stat
 
 - name: Download archive
   get_url:
     url=http://mirrors.ibiblio.org/apache/cassandra/{{cassandra_version}}/apache-cassandra-{{cassandra_version}}-bin.tar.gz
-    dest=/home/indigo
+    dest=/home/drastic
   when: not archive_stat.stat.exists
 
 - name: Stat Cassandra
@@ -70,7 +70,7 @@
 - name: Extract Cassandra
   unarchive:
     copy=no
-    src=/home/indigo/apache-cassandra-{{cassandra_version}}-bin.tar.gz
+    src=/home/drastic/apache-cassandra-{{cassandra_version}}-bin.tar.gz
     dest=/var/lib
   become: yes
   become_method: sudo

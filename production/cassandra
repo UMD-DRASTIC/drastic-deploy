@@ -1,9 +1,9 @@
-[indigo-databases]
+[drastic-databases]
 cassandra-1
 
-[indigo-webservers]
-indigo-web
+[drastic-webservers]
+drastic-web
 
-[indigo:children]
-indigo-databases
-indigo-webservers
+[drastic:children]
+drastic-databases
+drastic-webservers
