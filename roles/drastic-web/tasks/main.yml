@@ -32,14 +32,11 @@
   command: virtualenv -p $HOME/.localpython/bin/python2.7 "{{ install_dir }}/web" creates="{{ install_dir }}/web"
 
 - name: Clone git repo
-#  git: repo="/home/alloy/tmp/drastic_git/drastic-web.git"
-  git: repo="git@bitbucket.org:archivea/drastic-web.git"
+  git: repo="git@github.com:UMD-DRASTIC/drastic-web.git"
        dest="{{ install_dir }}/web/project"
-       key_file="{{ install_dir }}/.ssh/drastic_deployment_private_key"
        accept_hostkey=yes
        force=yes
        update=yes
-       version=develop
 
 - name: Install requirements
   pip:
@@ -77,15 +74,13 @@
   command: "{{ install_dir }}/web/bin/drastic create -c settings"
   environment:
     CQLSH_NO_BUNDLED: TRUE
+  ignore_errors: yes
 
 - name: Collect static
   command: "{{ install_dir }}/web/bin/python {{ install_dir }}/web/project/manage.py collectstatic --noinput"
 
 - name: Initialise Django database
   django_manage: command=syncdb app_path="{{ install_dir }}/web/project" virtual_env="{{ install_dir }}/web/"
-
-- name: Set up database
-  command: "{{ install_dir }}/web/bin/python {{ install_dir }}/web/bin/drastic create"
 
 #- name: Create default users
 #  script: init_user.expect "{{ install_dir }}" "{{ item.user_name }}" "{{ item.password }}" "{{ item.admin }}"
@@ -193,6 +188,11 @@
   become: yes
   become_method: sudo
   when: not https_mode
+
+- name: Create NGINX server locations include folder
+  file: path=/etc/nginx/location-include state=directory
+  become: yes
+  become_method: sudo
 
 - name: Start nginx
   service: name=nginx state=restarted

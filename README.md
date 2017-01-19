@@ -3,18 +3,18 @@
 The following steps describe how to deploy Drastic to a remote (or local) server.
 
 [ Note, if you intend to run multiple servers, know beforehand the details of
-  the networks, as it is best to set up the system with the 'real' network 
+  the networks, as it is best to set up the system with the 'real' network
   rather than using localhost. ]
 
 ####  PREREQUISTES
 Ansible expects a user _drastic_ to exist with sudo rights.  
-e.g. 
+e.g.
 ```
 sudo adduser  drastic
 sudo usermod -G sudo,adm drastic
 # If you want to propagate ssh certificates and simplify ssh access
 sudo mkdir ~drastic/.ssh
-sudo cat ~/.ssh/authorized_keys >> ~drastic/.ssh/authorized_keys 
+sudo cat ~/.ssh/authorized_keys >> ~drastic/.ssh/authorized_keys
 ```
 
 Needed package for ansible:
@@ -79,8 +79,8 @@ Some examples are present in the ```production``` and ```staging``` directory.
 
 * Create an host_vars file for each machine in the host_vars directory
 
-For each [drastic-databases] you must provide the Ethernet interface on which 
-Cassandra communicates. Usually this is eth0, but it may be something different 
+For each [drastic-databases] you must provide the Ethernet interface on which
+Cassandra communicates. Usually this is eth0, but it may be something different
 on more complex topologies (It changed in Ubuntu > 15.10).
 
 * The default behavior is to use HTTP. If needed this can be changed in the
@@ -116,7 +116,7 @@ on the target machine if the web-service fails to work. **
 ### Post install tasks
 Create Users
 
-See this [LINK](https://bitbucket.org/archivea/drastic) for full details, but the short version is
+See this [LINK](https://github.com/UMD-DRASTIC/drastic) for full details, but the short version is
 ```
 ssh drastic@<target>
 export DRASTIC_CONFIG=settings
@@ -147,30 +147,30 @@ exec /usr/lib/drastic/agent/bin/python /usr/lib/drastic/agent/project/wsgi....
 ```
 #### Cluster set up.
 
-[[[ **note:  To deploy to _multiple_ servers or add a server achieved 
--- In order to do this then the installation needs to know 
+[[[ **note:  To deploy to _multiple_ servers or add a server achieved
+-- In order to do this then the installation needs to know
 - the interface of the Cassandra network , i.e. the  one that Cassandra uses to coordinate
 - the address of at least one pre-existing node, ... since the cluster has to have something to Join
 - the name of the Cassandra cluster.
 
 This should now be in the installation scripts, but the nuts and bolts is that in /etc/cassandra/cassandra.yaml
 
-- set 
+- set
 
 ```
 auto_bootstrap: true
 listen_interface: eth<n>
-broadcast_address: 
+broadcast_address:
 ```
 
-- in the seed_provider: stanza add the addresses of known members 
+- in the seed_provider: stanza add the addresses of known members
 
 ```
 seeds: "<ip1>[,<ip2>]"
-``` 
-- ensure the clustername is the same 
+```
+- ensure the clustername is the same
 
-- on the new node node,stop Cassandra ( service cassandra stop ), remove _everything_ from the data directory ( /var/lib/cassandra/data/ ), 
+- on the new node node,stop Cassandra ( service cassandra stop ), remove _everything_ from the data directory ( /var/lib/cassandra/data/ ),
 
 - Restart Cassandra, leave it to sort itself out by waiting for all the nodes to show up in the output from the command line ```nodetool status```  and be in state **UN** and then run ```nodetool cleanup``` on all the nodes in the cluster ( which may take som time, so perhaps best done in TMUX).
  ]
@@ -199,4 +199,3 @@ To pause the VM, run `vagrant suspend` and to resume it `vagrant resume`. `vagra
 gracefully and `vagrant up` will restart it. Finally, `vagrant destroy` will shut down and delete the VM.
 
 There is a default user on the VM called `vagrant` and the password is `vagrant`, so you can ssh into it as normal.
-

@@ -31,10 +31,8 @@
   become_method: sudo
 
 - name: Clone git repo
-#  git: repo=/home/alloy/tmp/drastic_git/drastic.git
-  git: repo=git@bitbucket.org:archivea/drastic.git
+  git: repo=git@github.com:UMD-DRASTIC/drastic.git
        dest="{{ install_dir }}/drastic"
-       key_file="{{ install_dir }}/.ssh/drastic_deployment_private_key"
        accept_hostkey=yes
        force=yes
        update=yes

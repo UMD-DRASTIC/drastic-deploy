@@ -1,0 +1,7 @@
+---
+- name: Install a Datastax OpsCenter (firewalled)
+  hosts: opscenter
+  become: yes
+
+  roles:
+    - opscenter

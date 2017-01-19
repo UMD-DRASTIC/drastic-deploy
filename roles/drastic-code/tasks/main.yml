@@ -1,25 +1,18 @@
-- name: Copy bitbucket deployment key to the server
-  copy: content={{ drastic_deployment_private_key }} dest="{{ install_dir }}/.ssh/drastic_deployment_private_key" mode=0600
-
 - name: Clone drastic git repo
   git:
-    repo=git@bitbucket.org:archivea/drastic.git
+    repo=git@github.com:UMD-DRASTIC/drastic.git
     dest="{{ install_dir }}/drastic"
-    key_file="{{ install_dir }}/.ssh/drastic_deployment_private_key"
     accept_hostkey=yes
     force=yes
     update=yes
-    version=develop
 
 - name: Clone drastic-web git repo
   git:
-    repo="git@bitbucket.org:archivea/drastic-web.git"
+    repo="git@github.com:UMD-DRASTIC/drastic-web.git"
     dest="{{ install_dir }}/web/project"
-    key_file="{{ install_dir }}/.ssh/drastic_deployment_private_key"
     accept_hostkey=yes
     force=yes
     update=yes
-    version=develop
 
 - name: Copy settings
   template: src=settings.py dest="{{ install_dir }}/drastic"
@@ -28,6 +21,3 @@
   service: name=drastic-web state=restarted
   become: yes
   become_method: sudo
-
-- name: Delete bitbucket deployment key
-  file: path="{{ install_dir }}/.ssh/drastic_deployment_private_key" state=absent

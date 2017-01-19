@@ -1,12 +1,17 @@
 ---
 
 # Note that handlers are run in the order defined here.
-- name: systemd daemon-reload
-  command: systemd daemon-reload
+- name: systemctl daemon-reload
+  command: systemctl daemon-reload
   become: yes
   become_method: sudo
 
 - name: Restart Cassandra
   service: name=cassandra.service state=restarted
+  become: yes
+  become_method: sudo
+
+- name: Restart Datastax
+  service: name=dse state=restarted
   become: yes
   become_method: sudo

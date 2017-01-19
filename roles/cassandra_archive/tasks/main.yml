@@ -14,6 +14,14 @@
   when: item.stat.isdir is not defined or not item.stat.isdir
   with_items: "{{ st.results }}"
 
+# Directories were already checked to exist at the top. We don't want to create
+# new directories when remote volumes are not properly mounted yet.
+- name: Set ownership and permissions of Cassandra data directory
+  file: path={{ item }} state=directory mode=0755 owner=cassandra group=cassandra recurse=yes
+  become: yes
+  become_method: sudo
+  with_items: '{{ cassandra_data_dirs }}'
+
 - name: Installation dependencies
   apt: pkg=python-apt state=installed update_cache=yes force=yes
   become: yes
@@ -34,7 +42,6 @@
   become_method: sudo
   apt: pkg={{ item }} state=installed update_cache=yes force=yes
   with_items:
-    - python-apt
     - oracle-java8-installer
     - libjna-java
     - python-pip
@@ -47,60 +54,17 @@
     - build-essential
     - python-dev
 
-- pip: name=cassandra-driver
-
 ##############################################################################
-# Cassandra
+# Cassandra or Datastax Enterprise
 ##############################################################################
 
-- name: Stat Archive
-  stat: path=/home/drastic/apache-cassandra-{{cassandra_version}}-bin.tar.gz
-  register: archive_stat
+- name: Install Cassandra (open source)
+  include: cassandra_install.yml
+  when: not use_datastax
 
-- name: Download archive
-  get_url:
-    url=http://mirrors.ibiblio.org/apache/cassandra/{{cassandra_version}}/apache-cassandra-{{cassandra_version}}-bin.tar.gz
-    dest=/home/drastic
-  when: not archive_stat.stat.exists
-
-- name: Stat Cassandra
-  stat: path=/var/lib/apache-cassandra-{{cassandra_version}}
-  register: cassandra_stat
-
-- name: Extract Cassandra
-  unarchive:
-    copy=no
-    src=/home/drastic/apache-cassandra-{{cassandra_version}}-bin.tar.gz
-    dest=/var/lib
-  become: yes
-  become_method: sudo
-  when: not cassandra_stat.stat.exists
-
-- name: Create Cassandra directory link
-  file:
-    path=/var/lib/cassandra
-    src=/var/lib/apache-cassandra-{{cassandra_version}}
-    state=link
-  become: yes
-  become_method: sudo
-
-- name: Create Cassandra User
-  user:
-    name=cassandra
-    system=yes
-    home=/var/lib/cassandra
-    shell=/bin/false
-    state=present
-  become: yes
-  become_method: sudo
-
-- name: Create Cassandra Group
-  user:
-    name=cassandra
-    system=yes
-    state=present
-  become: yes
-  become_method: sudo
+- name: Install Datastax Enterprise
+  include: datastax_install.yml
+  when: use_datastax
 
 - name: Set Cassandra User Limits
   copy: src=files/cassandra.conf dest=/etc/security/limits.d/cassandra.conf
@@ -122,91 +86,15 @@
   become: yes
 
 - name: Create Cassandra log directory
-  file: path=/var/log/cassandra/log state=directory mode=0770
+  file: path=/var/log/cassandra/log state=directory mode=0770 owner=cassandra
   become: yes
   become_method: sudo
 
-# Directories were already checked to exist at the top. We don't want to create
-# new directories when remote volumes are not properly mounted yet.
-- name: Set ownership and permissions of Cassandra data directory
-  file: path={{ item }} state=directory mode=0775 owner=cassandra group=cassandra
-  become: yes
-  become_method: sudo
-  with_items: '{{ cassandra_data_dirs }}'
-
-- name: Create Cassandra cache directory
-  file: path=/var/lib/cassandra/saved_caches state=directory mode=0775
-  become: yes
-  become_method: sudo
-
-- name: Create Cassandra commitlog directory
-  file: path=/var/lib/cassandra/commitlog state=directory mode=0770
-  become: yes
-  become_method: sudo
-
-- name: Create Cassandra run directory
-  file: path=/var/run/cassandra state=directory mode=0775
-  become: yes
-  become_method: sudo
-
-- name: Change ownership of Cassandra log directory
-  file: path=/var/log/cassandra state=directory owner=cassandra group=cassandra recurse=yes
-  become: yes
-  become_method: sudo
-
-- name: Change ownership of Cassandra run directory
-  file: path=/var/run/cassandra state=directory owner=cassandra group=cassandra
-  become: yes
-  become_method: sudo
-
-- name: Change ownership of Cassandra directory
-  file:
-    path=/var/lib/apache-cassandra-{{cassandra_version}}
-    state=directory
-    owner=cassandra
-    group=cassandra
-    recurse=yes
-  become: yes
-  become_method: sudo
-
-- name: Create cqlsh link
-  file:
-    path=/usr/local/bin/cqlsh
-    src=/var/lib/cassandra/bin/cqlsh
-    state=link
-  become: yes
-  become_method: sudo
-
-
-
-##############################################################################
-# Cassandra Configuration
-# Installs the configuration files for this Cassandra cluster
-##############################################################################
-
-# This will restart Cassandra only if the configuration file has changed. See handlers/main.yaml
-- name: Copy Cassandra configuration file
-  template: src=cassandra.yaml dest=/var/lib/cassandra/conf/cassandra.yaml
-  notify:
-    - Restart Cassandra
-  become: yes
-  become_method: sudo
-
-- name: Copy Cassandra init script
-  template: src=cassandra.service dest=/etc/systemd/system/cassandra.service
-  become: yes
-  become_method: sudo
-  notify: systemd daemon-reload
-
-- meta: flush_handlers
-
-- name: Start Cassandra
-  service: name=cassandra state=started enabled=yes
-  become: yes
-  become_method: sudo
+- name: Restart services
+  meta: flush_handlers
 
 - name: Waiting for Cassandra to finish initialization
-  command: /usr/local/bin/cqlsh "{{ hostvars[inventory_hostname]['ansible_' ~ cassandra_interface]['ipv4']['address'] }}" -e exit
+  command: cqlsh "{{ hostvars[inventory_hostname]['ansible_' ~ cassandra_interface]['ipv4']['address'] }}" -e exit
   environment:
     CQLSH_NO_BUNDLED: TRUE
   register: cqlsh_ready
@@ -216,7 +104,9 @@
   when: cassandra_interface is defined
 
 - name: Waiting for Cassandra to finish initialization 2
-  command: CQLSH_NO_BUNDLED=TRUE /usr/local/bin/cqlsh  -e exit
+  command: cqlsh  -e exit
+  environment:
+    CQLSH_NO_BUNDLED: TRUE
   register: cqlsh_ready
   until: cqlsh_ready.rc == 0
   delay: 10

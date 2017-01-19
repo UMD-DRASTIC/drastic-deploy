@@ -20,8 +20,6 @@
     copy=no
     src=/tmp/Python-2.7.10.tgz
     dest=/home/drastic
-  become: yes
-  become_method: sudo
   when: not installerdir_stat.stat.exists
 
 - file: path=/home/drastic/.localpython state=directory

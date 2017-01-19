@@ -1,8 +1,6 @@
 ---
 - name: Install a Cassandra database node
-  remote_user: drastic
   hosts: drastic-databases
 
   roles:
     - cassandra_archive
-#    - cassandra
