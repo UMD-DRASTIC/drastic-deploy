@@ -1,33 +1,53 @@
-- apt: state=build-dep name=python2.7 update_cache=yes
+- apt_repository:
+    repo: deb-src http://us.archive.ubuntu.com/ubuntu/ {{ item }}
+    state: present
+  become: yes
+  with_items:
+    - xenial main restricted
+    - xenial-updates main restricted
+    - xenial universe
+    - xenial-updates universe
+    - xenial multiverse
+    - xenial-updates multiverse
+
+- apt:
+    state: build-dep
+    name: python2.7
+    update_cache: yes
   become: yes
 
 - name: Stat Python Installer Archive
-  stat: path=/tmp/Python-2.7.10.tgz
+  stat:
+    path: "{{ install_dir }}/Python-2.7.10.tgz"
   register: archive_stat
 
 - name: Download Python Installer Archive
   get_url:
-    url=http://www.python.org/ftp/python/2.7.10/Python-2.7.10.tgz
-    dest=/tmp
+    url: http://www.python.org/ftp/python/2.7.10/Python-2.7.10.tgz
+    dest: "{{ install_dir }}"
   when: not archive_stat.stat.exists
 
 - name: Stat Python Installer Dir
-  stat: path=/home/drastic/Python-2.7.10
+  stat:
+    path: "{{ install_dir }}/Python-2.7.10"
   register: installerdir_stat
 
 - name: Extract Python Installer Dir
   unarchive:
-    copy=no
-    src=/tmp/Python-2.7.10.tgz
-    dest=/home/drastic
+    copy: no
+    src: "{{ install_dir }}/Python-2.7.10.tgz"
+    dest: "{{ install_dir }}"
+  become: yes
   when: not installerdir_stat.stat.exists
 
-- file: path=/home/drastic/.localpython state=directory
+- file:
+    path: "{{ install_dir }}/localpython"
+    state: directory
 
-- command: "./configure --prefix=/home/drastic/.localpython"
+- command: "./configure --prefix={{ install_dir }}/localpython"
   args:
-    chdir: /home/drastic/Python-2.7.10
+    chdir: "{{ install_dir }}/Python-2.7.10"
 
 - command: make install
   args:
-    chdir: /home/drastic/Python-2.7.10
+    chdir: "{{ install_dir }}/Python-2.7.10"

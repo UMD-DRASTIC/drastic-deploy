@@ -1,6 +1,6 @@
 ---
 
-cassandra_version: 3.7
+cassandra_version: "3.10"
 cassandra_dir: /var/lib/cassandra
 cassandra_data_dir: /srv/data/cassandra_data
 cassandra_commit_log_dir: /var/lib/cassandra/commitlog

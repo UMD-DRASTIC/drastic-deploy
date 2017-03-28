@@ -4,12 +4,18 @@
   - debug: msg="Gathers the facts about db servers (IP addresses mainly)"
 
 - name: Install drastic webserver
-  remote_user: drastic
   hosts: drastic-webservers
   vars:
     https_mode: false
+  pre_tasks:
+  - file:
+      path: "{{ install_dir }}"
+      state: directory
+      owner: "{{ ansible_user_id }}"
+      mode: 0755
+    become: yes
 
   roles:
     - drastic-node
     - drastic-web
-    - drastic-listener
+    # - drastic-listener

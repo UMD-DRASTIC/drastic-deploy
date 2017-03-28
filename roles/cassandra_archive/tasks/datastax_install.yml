@@ -22,6 +22,10 @@
   become: yes
   become_method: sudo
 
+- name: Set Cassandra Package Install User Limits
+  copy: src=files/cassandra.conf dest=/etc/security/limits.d/cassandra.conf
+  become: yes
+
 - name: Restart Datastax
   service: name=dse state=restarted
   become: yes

@@ -14,14 +14,6 @@
   when: item.stat.isdir is not defined or not item.stat.isdir
   with_items: "{{ st.results }}"
 
-# Directories were already checked to exist at the top. We don't want to create
-# new directories when remote volumes are not properly mounted yet.
-- name: Set ownership and permissions of Cassandra data directory
-  file: path={{ item }} state=directory mode=0755 owner=cassandra group=cassandra recurse=yes
-  become: yes
-  become_method: sudo
-  with_items: '{{ cassandra_data_dirs }}'
-
 - name: Installation dependencies
   apt: pkg=python-apt state=installed update_cache=yes force=yes
   become: yes
@@ -66,10 +58,6 @@
   include: datastax_install.yml
   when: use_datastax
 
-- name: Set Cassandra User Limits
-  copy: src=files/cassandra.conf dest=/etc/security/limits.d/cassandra.conf
-  become: yes
-
 - name: Set Virtual Memory Resource Limit
   lineinfile: dest=/etc/sysctl.conf line="vm.max_map_count = 1048575"
   become: yes
@@ -85,6 +73,18 @@
   lineinfile: dest=/etc/fstab state=absent regexp="  swap  "
   become: yes
 
+- name: Make resource limits effective
+  become: yes
+  command: sysctl -p
+
+# Directories were already checked to exist at the top. We don't want to create
+# new directories when remote volumes are not properly mounted yet.
+- name: Set ownership and permissions of Cassandra data directory
+  file: path={{ item }} state=directory mode=0755 owner=cassandra group=cassandra recurse=yes
+  become: yes
+  become_method: sudo
+  with_items: '{{ cassandra_data_dirs }}'
+
 - name: Create Cassandra log directory
   file: path=/var/log/cassandra/log state=directory mode=0770 owner=cassandra
   become: yes
@@ -93,22 +93,16 @@
 - name: Restart services
   meta: flush_handlers
 
-- name: Waiting for Cassandra to finish initialization
-  command: cqlsh "{{ hostvars[inventory_hostname]['ansible_' ~ cassandra_interface]['ipv4']['address'] }}" -e exit
+- name: Create drastic keyspace as Cassandra becomes available
+  command: |
+    cqlsh \
+    --connect-timeout=30 \
+    --request-timeout=30 \
+    {{ hostvars[inventory_hostname]['ansible_' ~ cassandra_interface]['ipv4']['address'] }} \
+    -e "CREATE KEYSPACE IF NOT EXISTS drastic WITH replication = {'class': 'SimpleStrategy', 'replication_factor': {{ cassandra_replication_factor }} };"
   environment:
     CQLSH_NO_BUNDLED: TRUE
   register: cqlsh_ready
-  until: cqlsh_ready.rc == 0
+  until: cqlsh_ready.rc is defined and cqlsh_ready.rc == 0
   delay: 10
   retries: 5
-  when: cassandra_interface is defined
-
-- name: Waiting for Cassandra to finish initialization 2
-  command: cqlsh  -e exit
-  environment:
-    CQLSH_NO_BUNDLED: TRUE
-  register: cqlsh_ready
-  until: cqlsh_ready.rc == 0
-  delay: 10
-  retries: 5
-  when: cassandra_interface is undefined

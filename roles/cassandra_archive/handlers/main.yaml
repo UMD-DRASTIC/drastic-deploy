@@ -7,11 +7,11 @@
   become_method: sudo
 
 - name: Restart Cassandra
-  service: name=cassandra.service state=restarted
+  service: name=cassandra.service enabled=yes state=restarted
   become: yes
   become_method: sudo
 
 - name: Restart Datastax
-  service: name=dse state=restarted
+  service: name=dse enabled=yes state=restarted
   become: yes
   become_method: sudo

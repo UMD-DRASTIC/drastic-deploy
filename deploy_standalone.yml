@@ -3,7 +3,14 @@
 
 - name: Install a complete Drastic instance
   remote_user: drastic
-  hosts: drastic
+  hosts: drastic-databases
+  become: yes
+  tasks:
+    - file:
+        path: "{{ item }}"
+        state: directory
+        recurse: yes
+      with_items: "{{ cassandra_data_dirs }}"
 
 - include: databases.yml
 - include: webservers.yml

@@ -18,12 +18,12 @@
   file: name='{{ install_dir }}/scripts_cache' state=directory
 
 - name: Get the latest Docker
-  get_url: dest='{{ temp_dir }}/install_docker.sh' url=https://get.docker.com/ mode=0755
+  get_url: dest='/tmp/install_docker.sh' url=https://get.docker.com/ mode=0755
   sudo: yes
   register: getdocker
 
 - name: Install Docker
-  command: '{{ temp_dir }}/install_docker.sh'
+  command: '/tmp/install_docker.sh'
   sudo: yes
   when: getdocker.changed
 
@@ -40,7 +40,7 @@
   sudo: yes
   when: dockerfile.changed
   environment:
-    TMPDIR: '{{ temp_dir }}'
+    TMPDIR: '/tmp'
 
 - name: Install requirements
   pip: name={{ item }} virtualenv="{{ install_dir }}/listener"
@@ -50,12 +50,12 @@
     - python-magic
     - gevent
   environment:
-    TMPDIR: '{{ temp_dir }}'
+    TMPDIR: '/tmp'
 
 - name: Install drastic lib
   shell: "{{ install_dir }}/listener/bin/python setup.py develop"
   environment:
-    TMPDIR: '{{ temp_dir }}'
+    TMPDIR: '/tmp'
   args:
     chdir: "{{ install_dir }}/drastic"
 

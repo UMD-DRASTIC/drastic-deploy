@@ -2,13 +2,13 @@
 
 # Download and install Cassandra from an archive
 - name: Stat Archive
-  stat: path=/home/drastic/apache-cassandra-{{cassandra_version}}-bin.tar.gz
+  stat: path=/tmp/apache-cassandra-{{cassandra_version}}-bin.tar.gz
   register: archive_stat
 
 - name: Download archive
   get_url:
     url=http://mirrors.ibiblio.org/apache/cassandra/{{cassandra_version}}/apache-cassandra-{{cassandra_version}}-bin.tar.gz
-    dest=/home/drastic
+    dest=/tmp/apache-cassandra-{{cassandra_version}}-bin.tar.gz
   when: not archive_stat.stat.exists
 
 - name: Stat Cassandra
@@ -18,7 +18,7 @@
 - name: Extract Cassandra
   unarchive:
     copy=no
-    src=/home/drastic/apache-cassandra-{{cassandra_version}}-bin.tar.gz
+    src=/tmp/apache-cassandra-{{cassandra_version}}-bin.tar.gz
     dest=/var/lib
   become: yes
   become_method: sudo
@@ -72,7 +72,7 @@
   template: src=cassandra.service dest=/etc/systemd/system/cassandra.service
   become: yes
   become_method: sudo
-  notify: systemd daemon-reload
+  notify: systemctl daemon-reload
 
 - name: Create cqlsh link
   file:
@@ -83,14 +83,15 @@
   become_method: sudo
 
 - name: Create Cassandra cache directory
-  file: path=/var/lib/cassandra/saved_caches state=directory mode=0775
+  file: path=/var/lib/cassandra/saved_caches state=directory mode=0775 owner=cassandra group=cassandra
   become: yes
   become_method: sudo
 
 - name: Create Cassandra commitlog directory
-  file: path=/var/lib/cassandra/commitlog state=directory mode=0770
+  file: path=/var/lib/cassandra/commitlog state=directory mode=0770 owner=cassandra group=cassandra
   become: yes
   become_method: sudo
+  notify: Restart Cassandra
 
 - name: Create Cassandra run directory
   file: path=/var/run/cassandra state=directory mode=0775
@@ -106,3 +107,14 @@
   file: path=/var/run/cassandra state=directory owner=cassandra group=cassandra
   become: yes
   become_method: sudo
+
+- name: Set Cassandra Tarball Install User Limits
+  become: yes
+  blockinfile:
+    dest: /etc/security/limits.conf
+    insertafter: EOF
+    block: |
+      * - memlock unlimited
+      * - nofile 100000
+      * - nproc 32768
+      * - as unlimited
