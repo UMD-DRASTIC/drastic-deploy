@@ -93,6 +93,10 @@
 - name: Restart services
   meta: flush_handlers
 
+- name: Pause for Cassandra to come online
+  pause:
+    seconds: 30
+
 - name: Create drastic keyspace as Cassandra becomes available
   command: |
     cqlsh \

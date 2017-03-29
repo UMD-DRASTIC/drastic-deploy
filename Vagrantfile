@@ -27,9 +27,9 @@ Vagrant.configure(2) do |config|
       end
       if i == 3
         node.vm.hostname = "web"
-        node.vm.network "forwarded_port", guest: 80, host: 8080  # The web app
-        node.vm.network "forwarded_port", guest: 443, host: 8443  # The https web app
-        node.vm.network "forwarded_port", guest: 9000, host: 9000  # The agent
+        node.vm.network "forwarded_port", guest: 80, host: 8080 #, adapter: "lo" # The web app
+        node.vm.network "forwarded_port", guest: 443, host: 8443 #, adapter: "lo"  # The https web app
+        node.vm.network "forwarded_port", guest: 9000, host: 9000 #, adapter: "lo"  # The agent
       end
       # if i == 4
       #   node.vm.hostname = "jobs"
@@ -59,6 +59,9 @@ SCRIPT
           ansible.extra_vars = {
             ansible_ssh_user: "vagrant", # for Vagrant Ansible SSH, not in plays
             install_dir: "/opt/drastic",
+            use_datastax: true,
+            datastax_email: $datastax_email,
+            datastax_password: $datastax_password,
             cassandra_interface: "eth0",
             cassandra_seed_server: "node-1",
             cassandra_replication_factor: 1,
