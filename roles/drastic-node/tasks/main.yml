@@ -36,10 +36,15 @@
        accept_hostkey=yes
        force=yes
        update=yes
-       version=develop
-#- name: Copy local source
-#  synchronize: src=../drastic/ dest="{{ install_dir }}/drastic"
-#  remote_user: vagrant
+       version=master
+  when: not deploy_local_code
 
-- name: Copy settings
+- name: Copy local drastic lib sources
+  synchronize:
+    src: ../drastic/
+    dest: "{{ install_dir }}/drastic"
+    recursive: yes
+  when: deploy_local_code
+
+- name: Create drastic settings file
   template: src=settings.py dest="{{ install_dir }}/drastic"

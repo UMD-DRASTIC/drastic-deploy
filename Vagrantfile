@@ -41,6 +41,12 @@ then
   sudo apt-get update;
   sudo apt-get install python -q -y;
 fi
+echo Installing Rsync as required by Ansible
+if [ $(dpkg-query -W -f='${Status}' rsync 2>/dev/null | grep -c "ok installed") -eq 0 ];
+then
+  sudo apt-get update;
+  sudo apt-get install rsync -q -y;
+fi
 SCRIPT
       config.vm.provision "shell", inline: $script
 
@@ -58,6 +64,7 @@ SCRIPT
           # We override these variables to account for the default user being "vagrant" rather than "drastic".
           ansible.extra_vars = {
             ansible_ssh_user: "vagrant", # for Vagrant Ansible SSH, not in plays
+            deploy_local_code: true, # copies local code instead of git clone
             install_dir: "/opt/drastic",
             use_datastax: true,
             datastax_email: $datastax_email,

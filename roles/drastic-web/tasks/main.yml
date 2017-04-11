@@ -4,7 +4,7 @@
 ##############################################################################
 
 - name: update apt-cache
-  apt: update_cache=yes
+  apt: update_cache=yes cache_valid_time="{{ 60*60*24 }}"
   become: yes
   become_method: sudo
 
@@ -37,6 +37,14 @@
        accept_hostkey=yes
        force=yes
        update=yes
+  when: not deploy_local_code
+
+- name: Copy local drastic-web sources
+  synchronize:
+    src: ../drastic-web/
+    dest: "{{ install_dir }}/web/project"
+    recursive: yes
+  when: deploy_local_code
 
 - name: Install requirements
   pip:

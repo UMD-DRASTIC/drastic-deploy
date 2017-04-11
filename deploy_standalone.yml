@@ -12,5 +12,5 @@
         recurse: yes
       with_items: "{{ cassandra_data_dirs }}"
 
-- include: databases.yml
+# - include: databases.yml
 - include: webservers.yml

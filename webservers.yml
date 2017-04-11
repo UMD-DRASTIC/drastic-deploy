@@ -8,6 +8,9 @@
   vars:
     https_mode: false
   pre_tasks:
+  - debug:
+      msg: "LOCAL CODE DEPLOY"
+    when: deploy_local_code
   - file:
       path: "{{ install_dir }}"
       state: directory
@@ -18,4 +21,4 @@
   roles:
     - drastic-node
     - drastic-web
-    # - drastic-listener
+    - drastic-listener
