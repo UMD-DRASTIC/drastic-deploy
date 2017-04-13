@@ -8,7 +8,7 @@ set password [lindex $argv 2]
 set admin [lindex $argv 3]
 
 set env(CQLENG_ALLOW_SCHEMA_MANAGEMENT) 1
-spawn $install_dir/web/bin/python $install_dir/web/bin/drastic user-create $user_name
+spawn $install_dir/web/bin/python $install_dir/web/bin/drastic-admin user-create $user_name
 
 expect -re ".*administrator.*"
 send "$admin\r"

@@ -111,37 +111,29 @@
   delay: 10
   retries: 5
 
-- name: Creating DRAS-TIC Graph DB
-  uri:
-    url: http://localhost:8182/solr/artist/schema
-    method: POST
-    body:
-      gremlin: |
-        system.graph('drasticgraph').
-        replication("{'class' : 'NetworkTopologyStrategy', 'datacenter1' : 1}").
-        systemReplication("{'class' : 'NetworkTopologyStrategy', 'datacenter1' : 1}").
-        option("graph.schema_mode").set("Development").
-        option("graph.allow_scan").set("false").
-        option("graph.default_property_key_cardinality").set("multiple").
-        option("graph.tx_groups.*.write_consistency").set("ONE").
-        ifNotExists().create()
-    status_code: 200
-    body_format: json
+- name: Configure gremlin-console to connect to correct IP
+  template:
+    src: gremlin-console-remote.yaml
+    dest: /etc/dse/graph/gremlin-console/conf/remote.yaml
+    owner: cassandra
+    group: cassandra
+  become: yes
   tags: graph
 
-- name: Creating DRAS-TIC Graph Schema
-  uri:
-    url: http://localhost:8182/solr/artist/schema
-    method: POST
-    body:
-      gremlin: |
-        :remote config alias g drasticgraph.g
-        schema.clear()
-        schema.propertyKey("drastic:uuid").Text().single().create()
-        schema.propertyKey("drastic:name").Text().single().create()
-        schema.vertexLabel("resource").create()
-        schema.vertexLabel('resource').index('byResourceUUID').secondary().by('drastic:uuid').add()
-        schema.vertexLabel('resource').index('byResourceName').secondary().by('drastic:name').add()
-    status_code: 200
-    body_format: json
+- name: Place graph and schema creation into gremlin-console init script
+  copy: src=mydse-init.groovy dest=/etc/dse/graph/gremlin-console/scripts/dse-init.groovy owner=cassandra group=cassandra
+  become: yes
+  tags: graph
+
+- name: Start DSE gremlin-console to initialize drastic graph
+  shell: |
+    dse gremlin-console &
+    sleep 60
+    kill %1
+  ignore_errors: yes
+  tags: graph
+
+- name: Reset gremlin-console init script to usual
+  copy: src=dse-init.groovy dest=/etc/dse/graph/gremlin-console/scripts/dse-init.groovy owner=cassandra group=cassandra
+  become: yes
   tags: graph

@@ -41,7 +41,7 @@
 
 - name: Copy local drastic-web sources
   synchronize:
-    src: ../drastic-web/
+    src: ../../../drastic-web/
     dest: "{{ install_dir }}/web/project"
     recursive: yes
   when: deploy_local_code
@@ -78,7 +78,7 @@
   become: yes
   become_method: sudo
 
-- name: Create the cassandra database
+- name: Create the drastic cassandra keyspace (if not exists)
   command: "{{ install_dir }}/web/bin/drastic-admin create -c settings"
   environment:
     CQLSH_NO_BUNDLED: TRUE
@@ -90,24 +90,30 @@
 - name: Initialise Django database
   django_manage: command=syncdb app_path="{{ install_dir }}/web/project" virtual_env="{{ install_dir }}/web/"
 
-#- name: Create default users
-#  script: init_user.expect "{{ install_dir }}" "{{ item.user_name }}" "{{ item.password }}" "{{ item.admin }}"
-#  ignore_errors: yes
-#  with_items:
-#    - { user_name: drastic, password: drastic, admin: y }
-#    - { user_name: guest, password: guest, admin: n }
+- name: Create the root collection
+  command: "{{ install_dir }}/web/bin/drastic-admin root-collection-create -c settings"
+  environment:
+    CQLSH_NO_BUNDLED: TRUE
+  ignore_errors: yes
 
-#- name: Create default groups
-#  command: "{{ install_dir }}/web/bin/python {{ install_dir }}/web/bin/drastic group-create {{ item.group }}"
-#  with_items:
-#    - { group: drastic }
-#    - { group: guest }
+- name: Create default users
+  script: init_user.expect "{{ install_dir }}" "{{ item.user_name }}" "{{ item.password }}" "{{ item.admin }}"
+  ignore_errors: yes
+  with_items:
+    - { user_name: drastic, password: drastic, admin: y }
+    - { user_name: guest, password: guest, admin: n }
 
-#- name: Add users to groups
-#  command: "{{ install_dir }}/web/bin/python {{ install_dir }}/web/bin/drastic group-add-user {{ item.group }} {{ item.user }}"
-#  with_items:
-#    - { group: drastic, user: drastic }
-#    - { group: guest, user: guest }
+- name: Create default groups
+  command: "{{ install_dir }}/web/bin/drastic-admin group-create {{ item.group }}"
+  with_items:
+    - { group: drastic }
+    - { group: guest }
+
+- name: Add users to groups
+  command: "{{ install_dir }}/web/bin/drastic-admin group-add-user {{ item.group }} {{ item.user }}"
+  with_items:
+    - { group: drastic, user: drastic }
+    - { group: guest, user: guest }
 
 - name: Install packages for LDAP
   apt: pkg={{ item }} state=installed

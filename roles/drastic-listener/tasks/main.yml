@@ -70,4 +70,4 @@
 - name: Restart the Drastic web service
   service: name=drastic-web state=restarted
   sudo: yes
-  when: drastic-web-installed is defined
+  ignore_errors: yes
