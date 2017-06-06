@@ -29,6 +29,13 @@
     line: 'GRAPH_ENABLED=1'
   become: yes
 
+- name: Enable Apache Spark
+  lineinfile:
+    dest: /etc/default/dse
+    regexp: '^SPARK_ENABLED='
+    line: 'SPARK_ENABLED=1'
+  become: yes
+
 - name: Set Cassandra Package Install User Limits
   copy: src=files/cassandra.conf dest=/etc/security/limits.d/cassandra.conf
   become: yes
