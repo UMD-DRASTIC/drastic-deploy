@@ -18,15 +18,15 @@ Vagrant.configure(2) do |config|
     config.vm.define "node-#{i}" do |node|
       # node.vm.network "private_network", ip: "192.168.77.#{20+i}"
       if i == 1
-        node.vm.hostname = "db1"
+        node.vm.hostname = "node-1"
         # node.vm.network "forwarded_port", guest: 9042, host: 9042  # Cassandra native protocol
       end
       if i == 2
-        node.vm.hostname = "db2"
+        node.vm.hostname = "node-2"
         # node.vm.network "forwarded_port", guest: 9042, host: 9042  # Cassandra native protocol
       end
       if i == 3
-        node.vm.hostname = "web"
+        node.vm.hostname = "node-3"
         node.vm.network "forwarded_port", guest: 80, host: 8080 #, adapter: "lo" # The web app
         node.vm.network "forwarded_port", guest: 443, host: 8443 #, adapter: "lo"  # The https web app
         node.vm.network "forwarded_port", guest: 9000, host: 9000 #, adapter: "lo"  # The agent
@@ -54,6 +54,7 @@ SCRIPT
         node.vm.provision :ansible do |ansible|
           ansible.playbook = "deploy_standalone.yml"
           ansible.limit = "all"
+          # ansible.tags = ["graph", "code"]  # for dev
 
           ansible.groups = {
             "drastic-databases" => ["node-1", "node-2"],

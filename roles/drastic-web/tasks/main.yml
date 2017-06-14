@@ -45,11 +45,13 @@
     dest: "{{ install_dir }}/web/project"
     recursive: yes
   when: deploy_local_code
+  tags: code
 
 - name: Install requirements
   pip:
     requirements="{{ install_dir }}/web/project/requirements.txt"
     virtualenv="{{ install_dir }}/web"
+  tags: code
 
 - name: Install drastic lib into webapp
   shell: "{{ install_dir }}/web/bin/python setup.py develop"
@@ -214,7 +216,8 @@
   become_method: sudo
 
 - name: Start the Drastic web service
-  service: name=drastic-web state=started
+  service: name=drastic-web state=restarted
   become: yes
   become_method: sudo
   register: drastic-web-installed
+  tags: code

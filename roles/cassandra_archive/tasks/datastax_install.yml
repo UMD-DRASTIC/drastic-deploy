@@ -12,9 +12,25 @@
   become_method: sudo
 
 - name: Install Datastax Enterprise package
-  apt: package=dse-full update_cache=yes allow_unauthenticated=yes
+  apt: package={{ item }}=5.0.8-1 update_cache=yes allow_unauthenticated=yes
   become: yes
   become_method: sudo
+  with_items:
+    - dse-full
+    - dse
+    - dse-hive
+    - dse-pig
+    - dse-demos
+    - dse-libcassandra
+    - dse-libspark
+    - dse-libgraph
+    - dse-libsolr
+    - dse-libtomcat
+    - dse-libsqoop
+    - dse-liblog4j
+    - dse-libmahout
+    - dse-libhadoop2-client
+    - dse-libhadoop2-client-native
 
 # This will restart Cassandra only if the configuration file has changed. See handlers/main.yaml
 - name: Copy Cassandra configuration file
@@ -41,6 +57,7 @@
   become: yes
 
 - name: Restart Datastax
-  service: name=dse state=restarted
+  service: name=dse state=started
   become: yes
   become_method: sudo
+  ignore_errors: yes

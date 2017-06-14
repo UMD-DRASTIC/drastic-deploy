@@ -104,12 +104,16 @@
     --request-timeout=30 \
     {{ hostvars[inventory_hostname]['ansible_' ~ cassandra_interface]['ipv4']['address'] }} \
     -e "CREATE KEYSPACE IF NOT EXISTS drastic WITH replication = {'class': 'SimpleStrategy', 'replication_factor': {{ cassandra_replication_factor }} };"
-  environment:
-    CQLSH_NO_BUNDLED: TRUE
   register: cqlsh_ready
   until: cqlsh_ready.rc is defined and cqlsh_ready.rc == 0
   delay: 10
   retries: 5
+  # environment:
+  #  CQLSH_NO_BUNDLED: TRUE
+
+- debug:
+    msg: "ansible_hostname is {{ ansible_hostname }}, ansible_nodename is {{ ansible_nodename }}"
+  tags: graph
 
 - name: Configure gremlin-console to connect to correct IP
   template:
@@ -119,11 +123,13 @@
     group: cassandra
   become: yes
   tags: graph
+  when: ansible_hostname == cassandra_seed_server
 
 - name: Place graph and schema creation into gremlin-console init script
   copy: src=mydse-init.groovy dest=/etc/dse/graph/gremlin-console/scripts/dse-init.groovy owner=cassandra group=cassandra
   become: yes
   tags: graph
+  when: ansible_hostname == cassandra_seed_server
 
 - name: Start DSE gremlin-console to initialize drastic graph
   shell: |
@@ -132,8 +138,10 @@
     kill %1
   ignore_errors: yes
   tags: graph
+  when: ansible_hostname == cassandra_seed_server
 
 - name: Reset gremlin-console init script to usual
   copy: src=dse-init.groovy dest=/etc/dse/graph/gremlin-console/scripts/dse-init.groovy owner=cassandra group=cassandra
   become: yes
   tags: graph
+  when: ansible_hostname == cassandra_seed_server
