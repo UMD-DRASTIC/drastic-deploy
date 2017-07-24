@@ -31,7 +31,7 @@
   become_method: sudo
 
 - name: Clone git repo
-  git: repo=git@github.com:UMD-DRASTIC/drastic.git
+  git: repo=https://github.com/UMD-DRASTIC/drastic.git
        dest="{{ install_dir }}/drastic"
        accept_hostkey=yes
        force=yes

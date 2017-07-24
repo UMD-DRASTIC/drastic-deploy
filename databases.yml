@@ -3,4 +3,4 @@
   hosts: drastic-databases
 
   roles:
-    - cassandra_archive
+    - cassandra

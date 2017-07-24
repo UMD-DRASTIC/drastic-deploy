@@ -32,7 +32,7 @@
   command: virtualenv -p "{{ install_dir }}/localpython/bin/python2.7" "{{ install_dir }}/web" creates="{{ install_dir }}/web"
 
 - name: Clone git repo
-  git: repo="git@github.com:UMD-DRASTIC/drastic-web.git"
+  git: repo="https://github.com/UMD-DRASTIC/drastic-web.git"
        dest="{{ install_dir }}/web/project"
        accept_hostkey=yes
        force=yes

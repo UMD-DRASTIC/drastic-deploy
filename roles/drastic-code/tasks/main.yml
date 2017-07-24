@@ -1,6 +1,6 @@
 - name: Clone drastic git repo
   git:
-    repo=git@github.com:UMD-DRASTIC/drastic.git
+    repo=https://github.com/UMD-DRASTIC/drastic.git
     dest="{{ install_dir }}/drastic"
     accept_hostkey=yes
     force=yes
@@ -8,7 +8,7 @@
 
 - name: Clone drastic-web git repo
   git:
-    repo="git@github.com:UMD-DRASTIC/drastic-web.git"
+    repo="https://github.com/UMD-DRASTIC/drastic-web.git"
     dest="{{ install_dir }}/web/project"
     accept_hostkey=yes
     force=yes

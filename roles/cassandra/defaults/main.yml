@@ -2,3 +2,4 @@
 use_datastax: no
 datastax_email: person@example.com
 datastax_password: notverysecretpassword
+cassandra_restart_seconds: 60

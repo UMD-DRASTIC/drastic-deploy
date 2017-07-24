@@ -95,7 +95,7 @@
 
 - name: Pause for Cassandra to come online
   pause:
-    seconds: 30
+    seconds: '{ cassandra_restart_seconds }'
 
 - name: Create drastic keyspace as Cassandra becomes available
   command: |
