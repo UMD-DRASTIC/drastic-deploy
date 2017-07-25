@@ -6,9 +6,10 @@ This folder contains documents on many topics, covering a range of roles. We hav
 * [User's Guide](BASICS.md)
 * [Install Guide](INSTALL.md)
 * [Administrator's Guide](ADMINISTRATION.md)
-* [Developer's Guide](CONTRIBUTING.md)
-
-## Special Topics:
-* [Adding Workflow with DRAS-TIC Jobs](JOBS.md)
-* [Using the Graph Database](GRAPH.md)
-* [Running Spark Compute Jobs](SPARK.md)
+* Development Topics:
+  * [Contributing to DRAS-TIC](CONTRIBUTING.md)
+  * [DRAS-TIC Python Module](PYTHONLIBRARY.md)
+  * [Adding Workflow with DRAS-TIC Jobs](JOBS.md)
+* Using Analytics:
+  * [Querying the Graph Database](GRAPH.md)
+  * [Running Spark Compute Jobs](SPARK.md)

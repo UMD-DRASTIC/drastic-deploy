@@ -73,6 +73,7 @@ SCRIPT
             cassandra_interface: "eth0",
             cassandra_seed_server: "node-1",
             cassandra_replication_factor: 1,
+            cassandra_restart_seconds: 120,
             LDAP_SERVER_URI: "ldap://ldap.umd.edu",
             LDAP_USER_DN_TEMPLATE: "uid=%(user)s,ou=people,dc=umd,dc=edu",
             cassandra_data_dirs: ["/mnt/vol-1/data-files"]
