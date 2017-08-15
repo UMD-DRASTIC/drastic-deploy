@@ -54,7 +54,8 @@ SCRIPT
         node.vm.provision :ansible do |ansible|
           ansible.playbook = "deploy_standalone.yml"
           ansible.limit = "all"
-          # ansible.tags = ["graph", "code"]  # for dev
+          # ansible.tags = ["graph", "code"]  # for graph dev
+          # ansible.tags = ["code"]  # for dev
 
           ansible.groups = {
             "drastic-databases" => ["node-1", "node-2"],
@@ -76,36 +77,17 @@ SCRIPT
             cassandra_restart_seconds: 120,
             LDAP_SERVER_URI: "ldap://ldap.umd.edu",
             LDAP_USER_DN_TEMPLATE: "uid=%(user)s,ou=people,dc=umd,dc=edu",
-            cassandra_data_dirs: ["/mnt/vol-1/data-files"]
+            cassandra_data_dirs: ["/mnt/vol-1/data-files"],
+            use_S3_snapshotter: false,
+            incremental_backups: "true",
+            S3_snapshotter_access_key_id: "MyKeyID",
+            S3_snapshotter_secret_access_key: "MySecretKey",
+            S3_snapshotter_bucket: "MyBucketID",
+            S3_snapshotter_region: "us-east-1",
+            S3_snapshotter_basepath: "cassandra-backups"
           }
         end
       end
     end
   end
-
-  # config.vm.define "db1" do |db1|
-  # end
-  #
-  # config.vm.define "db2" do |db2|
-  #   db2.vm.hostname = "db2-drastic"
-  #   db2.vm.network "forwarded_port", guest: 9042, host: 9042  # Cassandra native protocol
-  # end
-  #
-  # config.vm.define "web" do |web|
-  # end
-  #
-  # config.vm.define "jobs" do |jobs|
-  # end
-
-  # Create a forwarded port mapping which allows access to a specific port
-  # within the machine from a port on the host machine. In the example below,
-  # accessing "localhost:8080" will access port 80 on the guest machine.
-#  config.vm.network "public_network", ip: "192.168.111.222"
-
-  # Share an additional folder to the guest VM. The first argument is
-  # the path on the host to the actual folder. The second argument is
-  # the path on the guest to mount the folder. And the optional third
-  # argument is a set of non-required options.
-  # config.vm.synced_folder "../data", "/vagrant_data"
-
 end

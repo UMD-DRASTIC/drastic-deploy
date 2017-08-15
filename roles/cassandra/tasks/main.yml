@@ -58,6 +58,9 @@
   include: datastax_install.yml
   when: use_datastax
 
+##############################################################################
+# Machine Environment for Cassandra
+##############################################################################
 - name: Set Virtual Memory Resource Limit
   lineinfile: dest=/etc/sysctl.conf line="vm.max_map_count = 1048575"
   become: yes
@@ -92,6 +95,10 @@
 
 - name: Restart services
   meta: flush_handlers
+
+- name: Optionally install Cassandra snapshotter for S3/Glacier
+  include: S3_snapshotter.yml
+  when: use_S3_snapshotter
 
 - name: Pause for Cassandra to come online
   pause:

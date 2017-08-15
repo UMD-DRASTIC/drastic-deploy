@@ -1,0 +1,69 @@
+---
+- name: Gathering database host info
+  hosts:  drastic-databases
+  tasks:
+  - debug: msg="Gathered the facts about db servers (IP addresses mainly)"
+
+- name: Install S3 Backup Cron Job on a Cassandra host
+  hosts: '{{ cassandra_seed_server }}'
+  become: yes
+  tasks:
+  - pip: name=cassandra_snapshotter
+
+  - copy:
+      dest: /etc/boto.cfg
+      content: |
+        [Credentials]
+        aws_access_key_id = {{ S3_snapshotter_access_key_id }}
+        aws_secret_access_key = {{ S3_snapshotter_secret_access_key }}
+
+  - copy:
+      dest: /etc/cron.d/s3snapshotter
+      owner: root
+      content: |
+        # Cron placed by DRAS-TIC's Ansible playbook.
+        # See https://www.github.com/drastic-deploy for more information.
+
+  - cron:
+      env: yes
+      name: BUCKET
+      value: "{{ S3_snapshotter_bucket }}"
+      user: root
+      cron_file: s3snapshotter
+
+  - cron:
+      env: yes
+      name: REGION
+      value: "{{ S3_snapshotter_region }}"
+      user: root
+      cron_file: s3snapshotter
+
+  - cron:
+      env: yes
+      name: BASEPATH
+      value: "{{ S3_snapshotter_basepath }}"
+      user: root
+      cron_file: s3snapshotter
+
+  - cron:
+      env: yes
+      name: HOSTS
+      value: "{{ groups['drastic-databases']|join(',') }}"
+      # value: "{% for item in groups['drastic-databases'] %}{{ hostvars[item]['ansible_' ~ hostvars[item]['cassandra_interface']]['ipv4']['address'] }},{% endfor %}"
+      user: root
+      cron_file: s3snapshotter
+
+  - cron:
+      name: "Nightly Snapshot then Incremental Cassandra Backup to S3"
+      weekday: "*"
+      minute: 0
+      hour: 1
+      user: root
+      job: |
+        cassandra-snapshotter \
+          --s3-bucket-name=$BUCKET \
+          --s3-bucket-region=$REGION \
+          --s3-base-path=$BASEPATH \
+          backup \
+          --hosts=$HOSTS
+      cron_file: s3snapshotter

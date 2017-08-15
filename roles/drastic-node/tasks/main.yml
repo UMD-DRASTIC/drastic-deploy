@@ -38,6 +38,7 @@
        update=yes
        version=master
   when: not deploy_local_code
+  tags: code
 
 - name: Copy local drastic lib sources
   synchronize:

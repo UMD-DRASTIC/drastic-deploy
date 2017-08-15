@@ -1,0 +1,13 @@
+- pip: name=cassandra_snapshotter
+  become: yes
+  
+- apt: pkg=lzop state=installed
+  become: yes
+
+- copy:
+    dest: /etc/boto.cfg
+    content: |
+      [Credentials]
+      aws_access_key_id = {{ S3_snapshotter_access_key_id }}
+      aws_secret_access_key = {{ S3_snapshotter_secret_access_key }}
+  become: yes
