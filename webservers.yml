@@ -21,4 +21,4 @@
   roles:
     - drastic-node
     - drastic-web
-    - drastic-listener
+    # - drastic-listener
