@@ -4,7 +4,5 @@ This is a reference guide for DRAS-TIC service administrators, covering these to
 
 * TODO User and group management
 * TODO Securing repository collections
-* TODO Backup and recovery
 * TODO Bulk loading collections
 * TODO Exporting collections
-* [Cluster Management](CLUSTER.md)
