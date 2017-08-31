@@ -4,7 +4,8 @@
 # Install all of the required apt packages
 ##############################################################################
 - name: Create log file directory
-  file: path="{{ install_dir }}/log/" state=directory
+  file: path="{{ install_dir }}/log/" state=directory owner=drastic
+  become: yes
 
 - name: update apt-cache
   become: yes
@@ -48,6 +49,7 @@
     recursive: yes
   when: deploy_local_code
   tags: code
+  become: yes
 
 - name: Create drastic settings file
   template: src=settings.py dest="{{ install_dir }}/drastic"

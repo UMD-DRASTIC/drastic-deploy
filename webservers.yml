@@ -3,18 +3,27 @@
   tasks:
   - debug: msg="Gathers the facts about db servers (IP addresses mainly)"
 
+- name: Create drastic user
+  hosts: drastic-webservers
+  tasks:
+  - user:
+      name: drastic
+      system: yes
+    become: yes
+
 - name: Install drastic webserver
   hosts: drastic-webservers
+  remote_user: drastic
   vars:
     https_mode: false
   pre_tasks:
   - debug:
-      msg: "LOCAL CODE DEPLOY"
+      msg: "NOTE: DEPLOYING LOCAL CODE"
     when: deploy_local_code
   - file:
       path: "{{ install_dir }}"
       state: directory
-      owner: "{{ ansible_user_id }}"
+      owner: drastic
       mode: 0755
     become: yes
 

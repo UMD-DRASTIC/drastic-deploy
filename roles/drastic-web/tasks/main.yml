@@ -2,7 +2,6 @@
 ##############################################################################
 # Create the virtualenv where we will host the drastic-web app
 ##############################################################################
-
 - name: update apt-cache
   apt: update_cache=yes cache_valid_time="{{ 60*60*24 }}"
   become: yes
@@ -30,6 +29,7 @@
 
 - name: Manually create the webapp virtualenv
   command: virtualenv -p "{{ install_dir }}/localpython/bin/python2.7" "{{ install_dir }}/web" creates="{{ install_dir }}/web"
+  become: yes
 
 - name: Clone git repo
   git: repo="https://github.com/UMD-DRASTIC/drastic-web.git"
@@ -38,6 +38,7 @@
        force=yes
        update=yes
   when: not deploy_local_code
+  become: yes
   tags: code
 
 - name: Copy local drastic-web sources
@@ -46,12 +47,14 @@
     dest: "{{ install_dir }}/web/project"
     recursive: yes
   when: deploy_local_code
+  become: yes
   tags: code
 
 - name: Install requirements
   pip:
-    requirements="{{ install_dir }}/web/project/requirements.txt"
+    requirements="{{ install_dir }}/web/project/requirements_upgrade.txt"
     virtualenv="{{ install_dir }}/web"
+  become: yes
   tags: code
 
 - name: Install drastic lib into webapp
@@ -59,6 +62,14 @@
   args:
     chdir: "{{ install_dir }}/drastic"
   tags: code
+  become: yes
+
+- file:
+    path: "{{ install_dir }}"
+    state: directory
+    owner: drastic
+    recurse: yes
+  become: yes
 
 - name: Copy Drastic-web init script
   template: src=drastic-web.service dest=/etc/systemd/system/drastic-web.service
@@ -90,9 +101,16 @@
 
 - name: Collect static
   command: "{{ install_dir }}/web/bin/python {{ install_dir }}/web/project/manage.py collectstatic --noinput"
+  become: yes
+
+- name: Make migrations for the Django database
+  django_manage: command=makemigrations app_path="{{ install_dir }}/web/project" virtual_env="{{ install_dir }}/web/"
+  become: yes
+  tags: mark
 
 - name: Initialise Django database
-  django_manage: command=syncdb app_path="{{ install_dir }}/web/project" virtual_env="{{ install_dir }}/web/"
+  django_manage: command=migrate app_path="{{ install_dir }}/web/project" virtual_env="{{ install_dir }}/web/"
+  become: yes
 
 - name: Create the root collection
   command: "{{ install_dir }}/web/bin/drastic-admin root-collection-create -c settings"
@@ -118,6 +136,13 @@
   with_items:
     - { group: drastic, user: drastic }
     - { group: guest, user: guest }
+
+- file:
+    path: "{{ install_dir }}"
+    state: directory
+    owner: drastic
+    recurse: yes
+  become: yes
 
 - name: Install packages for LDAP
   apt: pkg={{ item }} state=installed
