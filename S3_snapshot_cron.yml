@@ -5,7 +5,7 @@
   - debug: msg="Gathered the facts about db servers (IP addresses mainly)"
 
 - name: Install S3 Backup Cron Job on a Cassandra host
-  hosts: '{{ cassandra_seed_server }}'
+  hosts: 'cassandra-1'
   become: yes
   tasks:
   - pip: name=cassandra_snapshotter

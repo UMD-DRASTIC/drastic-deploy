@@ -5,11 +5,8 @@
 ##############################################################################
 - name: Create log file directory
   file: path="{{ install_dir }}/log/" state=directory owner=drastic
-  become: yes
 
 - name: update apt-cache
-  become: yes
-  become_method: sudo
   apt: update_cache=yes # upgrade=full install_recommends=no
 
 - name: Install useful packages
@@ -24,21 +21,18 @@
     - python-setuptools
     - python-virtualenv
     - mosquitto
-  become: yes
-  become_method: sudo
 
 - name: Ensures /var/www/.python-eggs dir exists
   file: path=/var/www/.python-eggs state=directory owner=www-data
-  become: yes
-  become_method: sudo
 
 - name: Clone git repo
-  git: repo=https://github.com/UMD-DRASTIC/drastic.git
-       dest="{{ install_dir }}/drastic"
-       accept_hostkey=yes
-       force=yes
-       update=yes
-       version=master
+  git:
+    repo: https://github.com/UMD-DRASTIC/drastic.git
+    dest: "{{ install_dir }}/drastic"
+    accept_hostkey: yes
+    force: yes
+    update: yes
+    version: master
   when: not deploy_local_code
   tags: code
 
@@ -49,7 +43,6 @@
     recursive: yes
   when: deploy_local_code
   tags: code
-  become: yes
 
 - name: Create drastic settings file
   template: src=settings.py dest="{{ install_dir }}/drastic"
@@ -57,4 +50,3 @@
 
 - name: Start the MQTT broker
   service: name=mosquitto state=started
-  sudo: yes

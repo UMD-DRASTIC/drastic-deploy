@@ -4,8 +4,6 @@
 ##############################################################################
 - name: update apt-cache
   apt: update_cache=yes cache_valid_time="{{ 60*60*24 }}"
-  become: yes
-  become_method: sudo
 
 - name: install packages for drastic web-ui
   apt: pkg={{ item }} state=installed
@@ -16,20 +14,15 @@
     - libsasl2-dev
     - virtualenv
     - python-dev
-  become: yes
-  become_method: sudo
 
 - name: Install Global Python modules
   pip:
     name=pexpect
-  become: yes
-  become_method: sudo
 
 - include: localpython.yml
 
 - name: Manually create the webapp virtualenv
   command: virtualenv -p "{{ install_dir }}/localpython/bin/python2.7" "{{ install_dir }}/web" creates="{{ install_dir }}/web"
-  become: yes
 
 - name: Clone git repo
   git: repo="https://github.com/UMD-DRASTIC/drastic-web.git"
@@ -38,7 +31,6 @@
        force=yes
        update=yes
   when: not deploy_local_code
-  become: yes
   tags: code
 
 - name: Copy local drastic-web sources
@@ -47,14 +39,12 @@
     dest: "{{ install_dir }}/web/project"
     recursive: yes
   when: deploy_local_code
-  become: yes
   tags: code
 
 - name: Install requirements
   pip:
-    requirements="{{ install_dir }}/web/project/requirements_upgrade.txt"
+    requirements="{{ install_dir }}/web/project/requirements.txt"
     virtualenv="{{ install_dir }}/web"
-  become: yes
   tags: code
 
 - name: Install drastic lib into webapp
@@ -62,38 +52,25 @@
   args:
     chdir: "{{ install_dir }}/drastic"
   tags: code
-  become: yes
 
 - file:
     path: "{{ install_dir }}"
     state: directory
     owner: drastic
     recurse: yes
-  become: yes
 
 - name: Copy Drastic-web init script
   template: src=drastic-web.service dest=/etc/systemd/system/drastic-web.service
-  become: yes
-  become_method: sudo
-
-#- name: Copy Drastic-web init script (upstart)
-#  template: src=drastic-web.conf dest=/etc/init/drastic-web.conf
-#  become: yes
-#  become_method: sudo
 
 - name: Create sysconfig directory
   file:
     path=/etc/sysconfig
     state=directory
-  become: yes
-  become_method: sudo
 
 - name: Copy Drastic-web init script variables
   template: src=drastic-env dest=/etc/sysconfig/drastic-env
-  become: yes
-  become_method: sudo
 
-- name: Create the drastic cassandra keyspace (if not exists)
+- name: Create the drastic tables (sync db)
   command: "{{ install_dir }}/web/bin/drastic-admin create -c settings"
   environment:
     CQLSH_NO_BUNDLED: TRUE
@@ -101,16 +78,13 @@
 
 - name: Collect static
   command: "{{ install_dir }}/web/bin/python {{ install_dir }}/web/project/manage.py collectstatic --noinput"
-  become: yes
 
 - name: Make migrations for the Django database
   django_manage: command=makemigrations app_path="{{ install_dir }}/web/project" virtual_env="{{ install_dir }}/web/"
-  become: yes
   tags: mark
 
 - name: Initialise Django database
   django_manage: command=migrate app_path="{{ install_dir }}/web/project" virtual_env="{{ install_dir }}/web/"
-  become: yes
 
 - name: Create the root collection
   command: "{{ install_dir }}/web/bin/drastic-admin root-collection-create -c settings"
@@ -122,7 +96,7 @@
   script: init_user.expect "{{ install_dir }}" "{{ item.user_name }}" "{{ item.password }}" "{{ item.admin }}"
   ignore_errors: yes
   with_items:
-    - { user_name: drastic, password: drastic, admin: y }
+    - { user_name: drastic, password: "{{ drastic_app_password }}", admin: y }
     - { user_name: guest, password: guest, admin: n }
 
 - name: Create default groups
@@ -142,7 +116,6 @@
     state: directory
     owner: drastic
     recurse: yes
-  become: yes
 
 - name: Install packages for LDAP
   apt: pkg={{ item }} state=installed
@@ -151,8 +124,6 @@
     - libldap2-dev
     - libsasl2-dev
     - libssl-dev
-  become: yes
-  become_method: sudo
   when: LDAP_SERVER_URI is defined
 
 - name: Install LDAP modules
@@ -165,18 +136,12 @@
 
 - name: Create HTTP nginx config
   template: src=drastic-web.nginx dest=/etc/nginx/sites-available/drastic_http
-  become: yes
-  become_method: sudo
 
 - name: Create HTTPS nginx config
   template: src=drastic-web-ssl.nginx dest=/etc/nginx/sites-available/drastic_https
-  become: yes
-  become_method: sudo
 
 - name: Create SSL directory for nginx
   file: path=/etc/nginx/ssl state=directory
-  become: yes
-  become_method: sudo
 
 - name: Retrieves facts for SSL certificate
   stat: path=/etc/nginx/ssl/nginx.crt
@@ -200,51 +165,33 @@
       Email (.*): "jansen@umd.edu"
   when: (ssl_certificate.stat.exists == False) or
         (ssl_key.stat.exists == False)
-  become: yes
-  become_method: sudo
 
 - name: Delete default nginx config for enabled site
   file: path=/etc/nginx/sites-enabled/default state=absent
-  become: yes
-  become_method: sudo
 
 - name: Delete nginx config for https mode when http mode
   file: path=/etc/nginx/sites-enabled/drastic_https state=absent
-  become: yes
-  become_method: sudo
   when: not https_mode
 
 - name: Delete nginx config for http mode when https mode
   file: path=/etc/nginx/sites-enabled/drastic_http state=absent
-  become: yes
-  become_method: sudo
   when: https_mode
 
 - name: Copy nginx config for https mode
   file: src=/etc/nginx/sites-available/drastic_https dest=/etc/nginx/sites-enabled/drastic_https state=link
-  become: yes
-  become_method: sudo
   when: https_mode
 
 - name: Copy nginx config for http mode
   file: src=/etc/nginx/sites-available/drastic_http dest=/etc/nginx/sites-enabled/drastic_http state=link
-  become: yes
-  become_method: sudo
   when: not https_mode
 
 - name: Create NGINX server locations include folder
   file: path=/etc/nginx/location-include state=directory
-  become: yes
-  become_method: sudo
 
 - name: Start nginx
   service: name=nginx state=restarted
-  become: yes
-  become_method: sudo
 
 - name: Start the Drastic web service
   service: name=drastic-web state=restarted enabled=yes
-  become: yes
-  become_method: sudo
   register: drastic-web-installed
   tags: code

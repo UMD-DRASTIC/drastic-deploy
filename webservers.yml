@@ -1,21 +1,19 @@
 ---
-- hosts:  drastic-databases
-  tasks:
-  - debug: msg="Gathers the facts about db servers (IP addresses mainly)"
-
 - name: Create drastic user
   hosts: drastic-webservers
+  become: yes
   tasks:
   - user:
       name: drastic
       system: yes
-    become: yes
+
+- hosts:  drastic-databases
+  tasks:
+  - debug: msg="Gathers the facts about db servers (IP addresses mainly)"
 
 - name: Install drastic webserver
   hosts: drastic-webservers
-  remote_user: drastic
-  vars:
-    https_mode: false
+  become: yes
   pre_tasks:
   - debug:
       msg: "NOTE: DEPLOYING LOCAL CODE"
@@ -24,10 +22,9 @@
       path: "{{ install_dir }}"
       state: directory
       owner: drastic
+      group: drastic
       mode: 0755
-    become: yes
 
   roles:
     - drastic-node
     - drastic-web
-    # - drastic-listener
