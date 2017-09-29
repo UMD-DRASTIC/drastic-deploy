@@ -55,7 +55,7 @@ SCRIPT
           ansible.playbook = "deploy_standalone.yml"
           ansible.limit = "all"
           # ansible.tags = ["graph", "code"]  # for graph dev
-          # ansible.tags = ["code"]  # for dev
+          # ansible.tags = ["mark"]  # for dev
 
           ansible.groups = {
             "drastic-databases" => ["node-1", "node-2"],
@@ -80,6 +80,8 @@ SCRIPT
             cassandra_data_dirs: ["/mnt/vol-1/data-files"],
             use_S3_snapshotter: false,
             incremental_backups: "true",
+            drastic_app_password: "drastic",
+            https_mode: false,
             S3_snapshotter_access_key_id: "MyKeyID",
             S3_snapshotter_secret_access_key: "MySecretKey",
             S3_snapshotter_bucket: "MyBucketID",
