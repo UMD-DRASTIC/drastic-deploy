@@ -65,7 +65,6 @@ SCRIPT
 
           # We override these variables to account for the default user being "vagrant" rather than "drastic".
           ansible.extra_vars = {
-            ansible_ssh_user: "vagrant", # for Vagrant Ansible SSH, not in plays
             deploy_local_code: true, # copies local code instead of git clone
             install_dir: "/opt/drastic",
             use_datastax: true,
