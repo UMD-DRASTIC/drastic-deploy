@@ -1,0 +1,9 @@
+- name: update apt-cache
+  apt: update_cache=yes # upgrade=full install_recommends=no
+
+- name: Install useful packages
+  apt: pkg=mosquitto state=installed install_recommends=no
+
+- name: Start the MQTT broker
+  service: name=mosquitto enabled= yes state=started
+  when: ansible_connection != 'docker'

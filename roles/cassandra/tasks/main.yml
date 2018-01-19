@@ -17,21 +17,17 @@
 - name: Installation dependencies
   apt: pkg=python-apt state=installed update_cache=yes force=yes
   become: yes
-  become_method: sudo
 
 - name: Add PPA for Oracle Java 8
   apt_repository: repo='ppa:webupd8team/java' state=present
   become: yes
-  become_method: sudo
 
 - name: Select and agree to licence
   debconf: name='oracle-java8-installer' question='shared/accepted-oracle-license-v1-1' value='true' vtype='select'
   become: yes
-  become_method: sudo
 
 - name: System dependencies
   become: yes
-  become_method: sudo
   apt: pkg={{ item }} state=installed update_cache=yes force=yes
   with_items:
     - oracle-java8-installer
@@ -85,13 +81,11 @@
 - name: Set ownership and permissions of Cassandra data directory
   file: path={{ item }} state=directory mode=0755 owner=cassandra group=cassandra recurse=yes
   become: yes
-  become_method: sudo
   with_items: '{{ cassandra_data_dirs }}'
 
 - name: Create Cassandra log directory
   file: path=/var/log/cassandra/log state=directory mode=0770 owner=cassandra
   become: yes
-  become_method: sudo
 
 - name: Restart services
   meta: flush_handlers

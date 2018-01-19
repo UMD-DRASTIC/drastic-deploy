@@ -1,0 +1,46 @@
+- name: Create the drastic tables (sync db)
+  command: "{{ install_dir }}/web/bin/drastic-admin create -c settings"
+  environment:
+    CQLSH_NO_BUNDLED: TRUE
+  ignore_errors: yes
+
+- name: Collect static
+  command: "{{ install_dir }}/web/bin/python {{ install_dir }}/web/project/manage.py collectstatic --noinput"
+
+- name: Make migrations for the Django database
+  django_manage: command=makemigrations app_path="{{ install_dir }}/web/project" virtual_env="{{ install_dir }}/web/"
+  tags: mark
+
+- name: Initialise Django database
+  django_manage: command=migrate app_path="{{ install_dir }}/web/project" virtual_env="{{ install_dir }}/web/"
+
+- name: Create the root collection
+  command: "{{ install_dir }}/web/bin/drastic-admin root-collection-create -c settings"
+  environment:
+    CQLSH_NO_BUNDLED: TRUE
+  ignore_errors: yes
+
+- name: Create default users
+  script: init_user.expect "{{ install_dir }}" "{{ item.user_name }}" "{{ item.password }}" "{{ item.admin }}"
+  ignore_errors: yes
+  with_items:
+    - { user_name: drastic, password: "{{ drastic_app_password }}", admin: y }
+    - { user_name: guest, password: guest, admin: n }
+
+- name: Create default groups
+  command: "{{ install_dir }}/web/bin/drastic-admin group-create {{ item.group }}"
+  with_items:
+    - { group: drastic }
+    - { group: guest }
+
+- name: Add users to groups
+  command: "{{ install_dir }}/web/bin/drastic-admin group-add-user {{ item.group }} {{ item.user }}"
+  with_items:
+    - { group: drastic, user: drastic }
+    - { group: guest, user: guest }
+
+- file:
+    path: "{{ install_dir }}"
+    state: directory
+    owner: drastic
+    recurse: yes

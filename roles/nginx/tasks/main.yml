@@ -1,0 +1,70 @@
+---
+##############################################################################
+# Create the virtualenv where we will host the drastic-web app
+##############################################################################
+
+- name: Install Nginx package
+  apt: pkg=nginx state=present update_cache=yes
+  when: ansible_connection != 'docker'
+
+- name: Delete default nginx config for enabled site
+  file: path=/etc/nginx/conf.d/default.conf state=absent
+
+- name: Create HTTP nginx config
+  template: src=drastic-web.nginx dest=/etc/nginx/conf.d/drastic_http.conf
+  when: not https_mode
+
+- name: Create HTTPS nginx config
+  template: src=drastic-web-ssl.nginx dest=/etc/nginx/conf.d/drastic_https.conf
+  when: https_mode
+
+- name: Create NGINX server locations include folder
+  file: path=/etc/nginx/location-include state=directory
+
+- name: Create SSL directory for nginx
+  file: path=/etc/nginx/ssl state=directory
+  when: https_mode
+
+- name: Retrieves facts for SSL certificate
+  stat: path=/etc/nginx/ssl/nginx.crt
+  register: ssl_certificate
+  when: https_mode
+
+- name: Retrieves facts for SSL key
+  stat: path=/etc/nginx/ssl/nginx.key
+  register: ssl_key
+  when: https_mode
+
+- name: install packages for drastic web-ui
+  apt: pkg={{ item }} state=installed update_cache=yes
+  with_items:
+    - expect
+    - python-pip
+  when: https_mode and ((ssl_certificate.stat.exists == False) or (ssl_key.stat.exists == False))
+
+- name: Install Global Python modules
+  pip:
+    name=pexpect
+  when: https_mode and ((ssl_certificate.stat.exists == False) or (ssl_key.stat.exists == False))
+
+- name: Self-sign SSL Certificate when not present
+  expect:
+    command: openssl req -new -x509 -sha256 -newkey rsa:2048 -days 365 -nodes -out nginx.crt -keyout nginx.key
+    chdir: /etc/nginx/ssl
+    responses:
+      Country Name (.*): "US"
+      State (.*): "Maryland"
+      Locality (.*): "College Park"
+      Organization Name (.*): "University of Maryland"
+      Organizational Unit Name(.*): "School of Information Studies"
+      Common Name (.*): "Team Drastic"
+      Email (.*): "jansen@umd.edu"
+  when: https_mode and ((ssl_certificate.stat.exists == False) or (ssl_key.stat.exists == False))
+
+- name: Copy nginx config for https mode
+  file: src=/etc/nginx/sites-available/drastic_https dest=/etc/nginx/sites-enabled/drastic_https state=link
+  when: https_mode
+
+- name: Start nginx
+  service: name=nginx state=restarted enabled=yes
+  when: ansible_connection != 'docker'

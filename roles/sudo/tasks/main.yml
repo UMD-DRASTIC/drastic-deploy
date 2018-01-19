@@ -1,0 +1,17 @@
+- become: yes
+  become_method: su
+  block:
+    - name: Update package cache
+      apt:
+        update_cache: yes
+        cache_valid_time: 86400
+
+    - name: Install GnuPG
+      package:
+        name: gnupg2
+        state: present
+
+    - name: Install sudo
+      package:
+        name: sudo
+        state: present

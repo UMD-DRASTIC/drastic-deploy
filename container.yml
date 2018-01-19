@@ -1,0 +1,125 @@
+version: "2"
+settings:
+  conductor:
+    base: ubuntu:xenial
+    # roles_path:   # Specify a local path containing Ansible roles
+    # volumes:      # Provide a list of volumes to mount
+    # environment:  # List or mapping of environment variables
+  project_name: drastic-cluster
+
+  # The deployment_output_path is mounted to the Conductor container, and the
+  # `run` and `deployment` commands then write generated Ansible playbooks to it.
+  # deployment_output_path: ./ansible-deployment
+defaults:
+  install_dir: /opt/drastic
+  deploy_local_code: no
+  cassandra_interface: ens5
+  cassandra_seed_server: cassandra-1
+  cassandra_replication_factor: 2
+  https_mode: no
+  use_datastax: yes
+  datastax_email: joe@example.com
+  datastax_password: joes_datastax_password
+  cassandra_hosts:
+    - cassandra-1
+    - cassandra-2
+    - cassandra-3
+  gremlin_host: cassandra-1
+  django_host: django
+  http_port: 8080
+  https_port: 8443
+  gunicorn_workers: 3
+services:
+  nginx:
+    from: nginx
+    roles:
+      - nginx
+    command: "nginx -g 'daemon off;'"
+    ports:
+      - 8080:80
+      - 8443:443
+    links:
+      - django
+  django:
+    from: ubuntu:xenial
+    roles:
+      - drastic
+      - django
+    entrypoint: [ "{{ install_dir }}/web/bin/gunicorn",
+      "-w", "{{ gunicorn_workers }}",
+      "--forwarded-allow-ips", "*",
+      "drastic_ui.wsgi",
+      "--config", "{{ install_dir }}/web/project/gunicorn.conf",
+      "--log-file", "{{ install_dir }}/log/drastic-web-gunicorn.log",
+      "--log-level", "info",
+      "--timeout=300" ]
+    expose:
+      - 8000
+    links:
+      - mosquitto
+      - cassandra-1
+      - cassandra-2
+      - cassandra-3
+    depends_on:
+      - cassandra-3
+  mosquitto:
+    from: eclipse-mosquitto
+    expose:
+      - 1883
+      - 9001
+    #volumes:
+    #  - mosquitto.conf:/mosquitto/config/mosquitto.conf
+  cassandra-1:
+    from: cassandra
+    environment:
+      CASSANDRA_BROADCAST_ADDRESS: cassandra-1
+    volumes:
+      - volume1:/var/lib/cassandra
+    expose:
+      - 7000
+    networks:
+      default:
+  cassandra-2:
+    from: cassandra
+    environment:
+      CASSANDRA_BROADCAST_ADDRESS: cassandra-2
+      CASSANDRA_SEEDS: cassandra-1
+    depends_on:
+      - cassandra-1
+    volumes:
+      - volume2:/var/lib/cassandra
+    expose:
+      - 7000
+    networks:
+      default:
+  cassandra-3:
+    from: cassandra
+    environment:
+      CASSANDRA_BROADCAST_ADDRESS: cassandra-3
+      CASSANDRA_SEEDS: cassandra-1
+    depends_on:
+      - cassandra-2
+    volumes:
+      - volume3:/var/lib/cassandra
+    expose:
+      - 7000
+    networks:
+      default:
+registries: {}
+  # Add optional registries used for deployment. For example:
+  #  google:
+  #    url: https://gcr.io
+  #    namespace: my-cool-project-xxxxxx
+volumes:
+  volume1:
+    docker: {}
+    external:
+      name: cassandra1-vol
+  volume2:
+    docker: {}
+    external:
+      name: cassandra2-vol
+  volume3:
+    docker: {}
+    external:
+      name: cassandra3-vol

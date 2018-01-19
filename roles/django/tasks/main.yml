@@ -1,0 +1,102 @@
+---
+##############################################################################
+# Create the virtualenv where we will host the drastic-web app
+##############################################################################
+
+- user:
+    name: drastic
+    system: yes
+
+- file:
+    path: "{{ install_dir }}"
+    state: directory
+    owner: drastic
+    group: drastic
+    mode: 0755
+
+- name: update apt-cache
+  apt: update_cache=yes cache_valid_time="{{ 60*60*24 }}"
+  when: ansible_connection != 'docker'
+
+- name: install packages for drastic web-ui
+  apt: pkg={{ item }} state=installed
+  with_items:
+    - virtualenv
+
+- name: Install packages for LDAP
+  apt: pkg={{ item }} state=present
+  with_items:
+    #- build-essential
+    - python-dev
+    - libldap2-dev
+    - libsasl2-dev
+    - libssl-dev
+
+# - include_tasks: localpython.yml
+
+- name: Manually create the webapp virtualenv
+  command: virtualenv -p python2.7 "{{ install_dir }}/web" creates="{{ install_dir }}/web"
+
+- name: Clone git repo
+  git:
+    repo: "https://github.com/UMD-DRASTIC/drastic-web.git"
+    dest: "{{ install_dir }}/web/project"
+    accept_hostkey: yes
+    force: yes
+    update: yes
+  when: not deploy_local_code
+  tags: code
+
+- name: Copy local drastic-web sources
+  synchronize:
+    src: ../../../drastic-web/
+    dest: "{{ install_dir }}/web/project"
+    recursive: yes
+  when: deploy_local_code
+  tags: code
+
+- name: Install requirements
+  pip:
+    requirements: "{{ install_dir }}/web/project/requirements.txt"
+    virtualenv: "{{ install_dir }}/web"
+  tags: code
+
+- name: Install drastic lib into webapp
+  shell: "{{ install_dir }}/web/bin/python setup.py develop"
+  args:
+    chdir: "{{ install_dir }}/drastic"
+  tags: code
+
+- file:
+    path: "{{ install_dir }}"
+    state: directory
+    owner: drastic
+    recurse: yes
+
+- name: Copy Drastic-web init script
+  template: src=drastic-web.service dest=/etc/systemd/system/drastic-web.service
+
+- name: Create sysconfig directory
+  file:
+    path: /etc/sysconfig
+    state: directory
+
+- name: Copy Drastic-web init script variables
+  template: src=drastic-env dest=/etc/sysconfig/drastic-env
+
+- file:
+    path: "{{ install_dir }}"
+    state: directory
+    owner: drastic
+    recurse: yes
+
+- name: Initialize the Drastic database
+  include_tasks: initialize_db.yml
+  when: ansible_connection != 'docker'
+  tags: code
+
+- name: Start the Drastic web service
+  service: name=drastic-web state=restarted enabled=yes
+  when: ansible_connection != 'docker'
+  register: drastic-web-installed
+  tags: code

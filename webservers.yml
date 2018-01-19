@@ -18,13 +18,11 @@
   - debug:
       msg: "NOTE: DEPLOYING LOCAL CODE"
     when: deploy_local_code
-  - file:
-      path: "{{ install_dir }}"
-      state: directory
-      owner: drastic
-      group: drastic
-      mode: 0755
-
+  - set_fact:
+      cassandra_hosts:
+        "{% for i in for item in groups['drastic-databases'] %}{{ hostvars[item]['ansible_' ~ hostvars[item]['cassandra_interface']]['ipv4']['address'] }}{%endfor%}"
+      gremlin_host: "{{ hostvars[cassandra_seed_server]['ansible_' ~ hostvars[cassandra_seed_server]['cassandra_interface']]['ipv4']['address'] }}"
+    with_items: groups['drastic-databases']
   roles:
     - drastic-node
     - drastic-web

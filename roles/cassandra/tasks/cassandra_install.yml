@@ -21,7 +21,6 @@
     src=/tmp/apache-cassandra-{{cassandra_version}}-bin.tar.gz
     dest=/var/lib
   become: yes
-  become_method: sudo
   when: not cassandra_stat.stat.exists
 
 - name: Create Cassandra directory link
@@ -30,7 +29,6 @@
     src=/var/lib/apache-cassandra-{{cassandra_version}}
     state=link
   become: yes
-  become_method: sudo
 
 - name: Create Cassandra User
   user:
@@ -40,7 +38,6 @@
     shell=/bin/false
     state=present
   become: yes
-  become_method: sudo
 
 - name: Create Cassandra Group
   user:
@@ -48,7 +45,6 @@
     system=yes
     state=present
   become: yes
-  become_method: sudo
 
 - name: Change ownership of Cassandra directory
   file:
@@ -58,7 +54,6 @@
     group=cassandra
     recurse=yes
   become: yes
-  become_method: sudo
 
 # This will restart Cassandra only if the configuration file has changed. See handlers/main.yaml
 - name: Copy Cassandra configuration file
@@ -66,12 +61,10 @@
   notify:
     - Restart Cassandra
   become: yes
-  become_method: sudo
 
 - name: Copy Cassandra init script
   template: src=cassandra.service dest=/etc/systemd/system/cassandra.service
   become: yes
-  become_method: sudo
   notify: systemctl daemon-reload
 
 - name: Create cqlsh link
@@ -80,33 +73,27 @@
     src=/var/lib/cassandra/bin/cqlsh
     state=link
   become: yes
-  become_method: sudo
 
 - name: Create Cassandra cache directory
   file: path=/var/lib/cassandra/saved_caches state=directory mode=0775 owner=cassandra group=cassandra
   become: yes
-  become_method: sudo
 
 - name: Create Cassandra commitlog directory
   file: path=/var/lib/cassandra/commitlog state=directory mode=0770 owner=cassandra group=cassandra
   become: yes
-  become_method: sudo
   notify: Restart Cassandra
 
 - name: Create Cassandra run directory
   file: path=/var/run/cassandra state=directory mode=0775
   become: yes
-  become_method: sudo
 
 - name: Change ownership of Cassandra log directory
   file: path=/var/log/cassandra state=directory owner=cassandra group=cassandra recurse=yes
   become: yes
-  become_method: sudo
 
 - name: Change ownership of Cassandra run directory
   file: path=/var/run/cassandra state=directory owner=cassandra group=cassandra
   become: yes
-  become_method: sudo
 
 - name: Set Cassandra Tarball Install User Limits
   become: yes

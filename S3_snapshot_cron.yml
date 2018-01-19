@@ -59,11 +59,24 @@
       minute: 0
       hour: 1
       user: root
-      job: |
+      job: cassandra-snapshotter --s3-bucket-name=$BUCKET --s3-bucket-region=$REGION --s3-base-path=$BASEPATH backup --hosts=$HOSTS
+      cron_file: s3snapshotter
+
+  - copy:
+      dest: /opt/s3snapshotter.sh
+      mode: 0755
+      owner: root
+      content: |
+        HOSTS="{{ groups['drastic-databases']|join(',') }}"
+        BASEPATH="{{ S3_snapshotter_basepath }}"
+        REGION="{{ S3_snapshotter_region }}"
+        BUCKET="{{ S3_snapshotter_bucket }}"
+        # Cron placed by DRAS-TIC's Ansible playbook.
+        # See https://www.github.com/drastic-deploy for more information.
+        #Ansible: Nightly Snapshot then Incremental Cassandra Backup to S3
         cassandra-snapshotter \
           --s3-bucket-name=$BUCKET \
           --s3-bucket-region=$REGION \
           --s3-base-path=$BASEPATH \
           backup \
           --hosts=$HOSTS
-      cron_file: s3snapshotter

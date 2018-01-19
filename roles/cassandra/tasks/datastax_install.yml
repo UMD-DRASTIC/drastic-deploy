@@ -4,17 +4,14 @@
 - name: Add Datastax APT Repository
   apt_repository: repo="deb http://{{ datastax_email }}:{{ datastax_password }}@debian.datastax.com/enterprise stable main" state=present
   become: yes
-  become_method: sudo
 
 - name: Add Datastax APT Key
   apt_key: url=http://debian.datastax.com/debian/repo_key state=present
   become: yes
-  become_method: sudo
 
 - name: Install Datastax Enterprise package
   apt: package={{ item }}={{ datastax_version }} update_cache=yes allow_unauthenticated=yes
   become: yes
-  become_method: sudo
   with_items:
     - dse-full
     - dse
@@ -36,7 +33,6 @@
 - name: Copy Cassandra configuration file
   template: src=cassandra.yaml dest=/etc/dse/cassandra/cassandra.yaml
   become: yes
-  become_method: sudo
 
 - name: Enable DSE Graph
   lineinfile:
@@ -59,5 +55,4 @@
 - name: Restart Datastax
   service: name=dse state=started
   become: yes
-  become_method: sudo
   ignore_errors: yes
