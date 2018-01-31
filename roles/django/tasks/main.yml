@@ -22,6 +22,7 @@
   apt: pkg={{ item }} state=installed
   with_items:
     - virtualenv
+    - netcat
 
 - name: Install packages for LDAP
   apt: pkg={{ item }} state=present
@@ -89,6 +90,13 @@
     state: directory
     owner: drastic
     recurse: yes
+
+- template:
+    src: django_init.sh
+    dest: "{{ install_dir }}/django_init.sh"
+    mode: 0755
+    owner: drastic
+  when: ansible_connection == 'docker'
 
 - name: Initialize the Drastic database
   include_tasks: initialize_db.yml

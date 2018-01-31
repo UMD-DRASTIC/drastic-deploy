@@ -3,7 +3,7 @@ upstream gunicorn {
 }
 
 server {
-    listen  {{ http_port}};
+    listen  {{ https_port }};
     return 301 https://$host$request_uri;
 }
 

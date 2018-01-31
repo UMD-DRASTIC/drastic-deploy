@@ -9,7 +9,6 @@
 
 - name: Make migrations for the Django database
   django_manage: command=makemigrations app_path="{{ install_dir }}/web/project" virtual_env="{{ install_dir }}/web/"
-  tags: mark
 
 - name: Initialise Django database
   django_manage: command=migrate app_path="{{ install_dir }}/web/project" virtual_env="{{ install_dir }}/web/"

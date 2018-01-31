@@ -11,24 +11,20 @@ settings:
   # `run` and `deployment` commands then write generated Ansible playbooks to it.
   # deployment_output_path: ./ansible-deployment
 defaults:
-  install_dir: /opt/drastic
   deploy_local_code: no
-  cassandra_interface: ens5
-  cassandra_seed_server: cassandra-1
-  cassandra_replication_factor: 2
   https_mode: no
-  use_datastax: yes
-  datastax_email: joe@example.com
-  datastax_password: joes_datastax_password
+  django_host: django
+  http_port: 8080
+  https_port: 8443
+  gunicorn_workers: 3
+  install_dir: /opt/drastic
+  cassandra_replication_factor: 2
+  cassandra_seed_server: cassandra-1
   cassandra_hosts:
     - cassandra-1
     - cassandra-2
     - cassandra-3
   gremlin_host: cassandra-1
-  django_host: django
-  http_port: 8080
-  https_port: 8443
-  gunicorn_workers: 3
 services:
   nginx:
     from: nginx
@@ -36,37 +32,74 @@ services:
       - nginx
     command: "nginx -g 'daemon off;'"
     ports:
-      - 8080:80
-      - 8443:443
+      - 80:8080
+      - 443:8443
+    dev_overrides:
+      ports:
+        - 8080:8080
+        - 8443:8443
     links:
       - django
-  django:
+  djangoinit:
     from: ubuntu:xenial
     roles:
       - drastic
       - django
-    entrypoint: [ "{{ install_dir }}/web/bin/gunicorn",
-      "-w", "{{ gunicorn_workers }}",
-      "--forwarded-allow-ips", "*",
-      "drastic_ui.wsgi",
-      "--config", "{{ install_dir }}/web/project/gunicorn.conf",
-      "--log-file", "{{ install_dir }}/log/drastic-web-gunicorn.log",
-      "--log-level", "info",
-      "--timeout=300" ]
-    expose:
-      - 8000
+    environment:
+      CASSANDRA_HOST: "{{ cassandra_seed_server }}"
+    command: "{{ install_dir }}/django_init.sh"
+    restart: on-failure
     links:
       - mosquitto
       - cassandra-1
       - cassandra-2
       - cassandra-3
     depends_on:
+      - cassandra-1
+      - cassandra-2
+      - cassandra-3
+  django:
+    from: ubuntu:xenial
+    roles:
+      - drastic
+      - django
+    expose:
+      - 8000
+    dev_overrides:
+      ports:
+        - 8888:8000
+      expose:
+        - 8000
+    environment:
+      GUNICORN_CMD_ARGS: |
+        --workers {{ gunicorn_workers }}
+        --forwarded-allow-ips '*'
+        --bind "0.0.0.0:8000"
+        --pythonpath '{{ install_dir }}/web/project'
+        --config '{{ install_dir }}/web/project/gunicorn.conf'
+        --log-file '{{ install_dir }}/log/drastic-web-gunicorn.log'
+        --log-level INFO
+        --timeout 300
+    command: "{{ install_dir }}/web/bin/gunicorn drastic_ui.wsgi"
+    restart: on-failure
+    depends_on:
+      - djangoinit
+      - mosquitto
+      - cassandra-1
+      - cassandra-2
+      - cassandra-3
+    links:
+      - mosquitto
+      - cassandra-1
+      - cassandra-2
       - cassandra-3
   mosquitto:
     from: eclipse-mosquitto
-    expose:
-      - 1883
-      - 9001
+    # expose:
+    #   - 1883
+    #   - 9001
+    # networks:
+    #   default:
     #volumes:
     #  - mosquitto.conf:/mosquitto/config/mosquitto.conf
   cassandra-1:
@@ -75,10 +108,7 @@ services:
       CASSANDRA_BROADCAST_ADDRESS: cassandra-1
     volumes:
       - volume1:/var/lib/cassandra
-    expose:
-      - 7000
-    networks:
-      default:
+    restart: on-failure
   cassandra-2:
     from: cassandra
     environment:
@@ -88,10 +118,7 @@ services:
       - cassandra-1
     volumes:
       - volume2:/var/lib/cassandra
-    expose:
-      - 7000
-    networks:
-      default:
+    restart: on-failure
   cassandra-3:
     from: cassandra
     environment:
@@ -101,15 +128,8 @@ services:
       - cassandra-2
     volumes:
       - volume3:/var/lib/cassandra
-    expose:
-      - 7000
-    networks:
-      default:
+    restart: on-failure
 registries: {}
-  # Add optional registries used for deployment. For example:
-  #  google:
-  #    url: https://gcr.io
-  #    namespace: my-cool-project-xxxxxx
 volumes:
   volume1:
     docker: {}
