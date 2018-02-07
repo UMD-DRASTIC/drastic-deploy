@@ -98,6 +98,20 @@
     owner: drastic
   when: ansible_connection == 'docker'
 
+- name: In Docker image, activate the virtual environment for scripts and commands
+  when: ansible_connection == 'docker'
+  copy:
+    dest: "{{ install_dir }}/entrypoint.sh"
+    mode: 0755
+    content: |
+      #!/bin/sh
+      . {{ install_dir }}/web/bin/activate
+      exec "$@"
+
+- name: Clean up the apt cache for light container image
+  when: ansible_connection == 'docker'
+  command: apt-get clean
+
 - name: Initialize the Drastic database
   include_tasks: initialize_db.yml
   when: ansible_connection != 'docker'

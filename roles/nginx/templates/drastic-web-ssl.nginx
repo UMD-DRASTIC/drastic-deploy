@@ -24,7 +24,7 @@ server {
 
     location /static {
         autoindex on;
-        alias {{ install_dir }}/web/project/static/;
+        alias /static/;
     }
 
     location /media {

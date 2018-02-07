@@ -48,7 +48,3 @@
     recursive: yes
   when: deploy_local_code
   tags: code
-
-- name: Create drastic settings file
-  template: src=settings.py dest="{{ install_dir }}/drastic"
-  tags: code
