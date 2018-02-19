@@ -1,5 +1,8 @@
 ---
 use_datastax: no
+incremental_backups: yes
 datastax_email: person@example.com
 datastax_password: notverysecretpassword
-cassandra_restart_seconds: 60
+enable_datastax_graph: no
+enable_datastax_spark: no
+cassandra_restart_seconds: 60 

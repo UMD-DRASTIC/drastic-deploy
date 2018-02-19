@@ -5,8 +5,8 @@ After=network.target
 [Service]
 User=drastic
 Group=nogroup
-EnvironmentFile=/etc/sysconfig/drastic-env
 Restart=on-failure
+EnvironmentFile={{ install_dir }}/drastic-env
 WorkingDirectory={{ install_dir }}/web/project
 ExecStart={{ install_dir }}/web/bin/gunicorn drastic_ui.wsgi --config={{ install_dir }}/web/project/gunicorn.conf --log-file={{ install_dir }}/log/drastic-web-gunicorn.log --log-level=info --timeout=300
 PrivateTmp=true

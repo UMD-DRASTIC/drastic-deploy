@@ -9,7 +9,7 @@
 
 - hosts:  drastic-databases
   tasks:
-  - debug: msg="Gathers the facts about db servers (IP addresses mainly)"
+  - debug: msg="Gathering IP addresses of the Cassandra servers"
 
 - name: Install drastic webserver
   hosts: drastic-webservers
@@ -18,11 +18,7 @@
   - debug:
       msg: "NOTE: DEPLOYING LOCAL CODE"
     when: deploy_local_code
-  - set_fact:
-      cassandra_hosts:
-        "{% for i in for item in groups['drastic-databases'] %}{{ hostvars[item]['ansible_' ~ hostvars[item]['cassandra_interface']]['ipv4']['address'] }}{%endfor%}"
-      gremlin_host: "{{ hostvars[cassandra_seed_server]['ansible_' ~ hostvars[cassandra_seed_server]['cassandra_interface']]['ipv4']['address'] }}"
-    with_items: groups['drastic-databases']
   roles:
-    - drastic-node
-    - drastic-web
+    - drastic
+    - django
+    - nginx

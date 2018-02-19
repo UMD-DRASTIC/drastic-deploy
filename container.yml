@@ -24,7 +24,6 @@ defaults:
     - cassandra-1
     - cassandra-2
     - cassandra-3
-  gremlin_host: cassandra-1
 services:
   djangoinit:
     from: ubuntu:xenial
@@ -34,7 +33,7 @@ services:
     environment:
       DJANGO_STATIC_ROOT: "/static"
       CASSANDRA_SEED_SERVER: "{{ cassandra_seed_server }}"
-      CASSANDRA_HOSTNAMES: "{{ cassandra_hosts|join(' ') }}"
+      CASSANDRA_HOSTNAMES: "{{ cassandra_hosts|join(',') }}"
       CASSANDRA_REPLICATION_FACTOR: "{{ cassandra_replication_factor }}"
       CASSANDRA_CONSISTENCY_LEVEL: "{{ cassandra_hosts|length - cassandra_replication_factor + 1 }}"
     command: "{{ install_dir }}/django_init.sh"
@@ -64,7 +63,7 @@ services:
     environment:
       DJANGO_STATIC_ROOT: "/static"
       CASSANDRA_SEED_SERVER: "{{ cassandra_seed_server }}"
-      CASSANDRA_HOSTNAMES: "{{ cassandra_hosts|join(' ') }}"
+      CASSANDRA_HOSTNAMES: "{{ cassandra_hosts|join(',') }}"
       CASSANDRA_REPLICATION_FACTOR: "{{ cassandra_replication_factor }}"
       CASSANDRA_CONSISTENCY_LEVEL: "{{ cassandra_hosts|length - cassandra_replication_factor + 1 }}"
       GUNICORN_CMD_ARGS: |

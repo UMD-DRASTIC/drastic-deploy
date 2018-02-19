@@ -1,5 +1,8 @@
-# Shared environment for Drastic services
 CQLENG_ALLOW_SCHEMA_MANAGEMENT=1
 CQLSH_NO_BUNDLED=TRUE
 AUTH_LDAP_SERVER_URI="ldap://ldap.umd.edu"
 AUTH_LDAP_USER_DN_TEMPLATE="uid=%(user)s,ou=people,dc=umd,dc=edu"
+CASSANDRA_SEED_SERVER={{ cassandra_seed_server }}
+CASSANDRA_HOSTNAMES="{{ cassandra_hosts|join(',') }}"
+CASSANDRA_REPLICATION_FACTOR={{ cassandra_replication_factor }}
+CASSANDRA_CONSISTENCY_LEVEL={{ cassandra_hosts|length - cassandra_replication_factor + 1 }}

@@ -82,8 +82,19 @@
     path: /etc/sysconfig
     state: directory
 
-- name: Copy Drastic-web init script variables
-  template: src=drastic-env dest=/etc/sysconfig/drastic-env
+- name: Copy Drastic-web profile.d script
+  template:
+    src: drastic-env.sh
+    dest: /etc/profile.d/drastic-env.sh
+    mode: 0755
+  tags: init
+
+- name: Copy Drastic-web environment variables file
+  template:
+    src: drastic-env
+    dest: "{{ install_dir }}/drastic-env"
+    mode: 0755
+  tags: init
 
 - file:
     path: "{{ install_dir }}"
@@ -96,10 +107,9 @@
     dest: "{{ install_dir }}/django_init.sh"
     mode: 0755
     owner: drastic
-  when: ansible_connection == 'docker'
+  tags: init
 
-- name: In Docker image, activate the virtual environment for scripts and commands
-  when: ansible_connection == 'docker'
+- name: Create entrypoint script that activates virtual environment for scripts and commands
   copy:
     dest: "{{ install_dir }}/entrypoint.sh"
     mode: 0755
@@ -107,15 +117,18 @@
       #!/bin/sh
       . {{ install_dir }}/web/bin/activate
       exec "$@"
+  tags: init
 
 - name: Clean up the apt cache for light container image
   when: ansible_connection == 'docker'
   command: apt-get clean
 
-- name: Initialize the Drastic database
-  include_tasks: initialize_db.yml
+- name: Initialize the Drastic database (approx. 2 minutes)
+  shell: ". /etc/profile.d/drastic-env.sh; {{ install_dir }}/entrypoint.sh {{ install_dir }}/django_init.sh &> {{ install_dir }}/init.log"
   when: ansible_connection != 'docker'
-  tags: code
+  become: yes
+  become_user: drastic
+  tags: init
 
 - name: Start the Drastic web service
   service: name=drastic-web state=restarted enabled=yes

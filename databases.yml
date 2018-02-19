@@ -1,6 +1,5 @@
 ---
 - name: Install a Cassandra database node
   hosts: drastic-databases
-
   roles:
     - cassandra

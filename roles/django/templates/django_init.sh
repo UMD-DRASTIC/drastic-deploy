@@ -1,15 +1,16 @@
 #!/bin/sh
-while ! nc -w 1 -z cassandra-1 9042; do
+env
+while ! nc -w 1 -z $CASSANDRA_SEED_SERVER 9042; do
   sleep 0.1;
 done;
-echo "cassandra-1 is up, waiting one minute for Voltron.."
-sleep 60
+echo "Seed server $CASSANDRA_SEED_SERVER is up, waiting 10 secs for Voltron.."
+sleep 10
 
 {{ install_dir }}/web/bin/python - <<DOC
 from cassandra.cluster import Cluster
 import os
 import socket
-cassandra_host = os.getenv('CASSANDRA_HOST', 'cassandra-1')
+cassandra_host = os.getenv('CASSANDRA_SEED_SERVER', 'cassandra-1')
 cassandra_host = socket.gethostbyname(cassandra_host)
 cluster = Cluster([cassandra_host,])
 session = cluster.connect()

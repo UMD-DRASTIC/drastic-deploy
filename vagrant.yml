@@ -1,0 +1,29 @@
+---
+# This playbook deploys/installs a single node of the Drastic system
+
+- name: Install a complete Drastic service cluster
+  remote_user: drastic
+  hosts: drastic-databases
+  become: yes
+  tasks:
+    - file:
+        path: "{{ item }}"
+        state: directory
+        recurse: yes
+      with_items: "{{ cassandra_data_dirs }}"
+
+- name: Setting up the Cassandra host variables (IPs b/c Vagrant DNS error prone)
+  hosts: drastic-databases:drastic-webservers
+  tasks:
+    - set_fact:
+        cassandra_seed_server: "{{ hostvars[groups['drastic-databases'][0]]['ansible_' ~ cassandra_interface]['ipv4']['address'] }}"
+        cassandra_hosts_tmp: "{% for item in groups['drastic-databases'] %}{{ hostvars[item]['ansible_' ~ hostvars[item]['cassandra_interface']]['ipv4']['address'] }},{% endfor %}"
+      tags:
+        - always
+    - set_fact:
+        cassandra_hosts: "{{ cassandra_hosts_tmp.split(',') }}"
+      tags:
+        - always
+
+- include: databases.yml
+- include: webservers.yml

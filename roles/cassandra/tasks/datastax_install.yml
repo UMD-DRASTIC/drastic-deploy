@@ -1,4 +1,5 @@
-- pip: name=cassandra-driver-dse
+- name: Install Cassandra Python driver and CQLSH tool
+  pip: name=cassandra-driver-dse
 - pip: name=geomet
 
 - name: Add Datastax APT Repository
@@ -9,7 +10,7 @@
   apt_key: url=http://debian.datastax.com/debian/repo_key state=present
   become: yes
 
-- name: Install Datastax Enterprise package
+- name: Install Datastax Enterprise packages
   apt: package={{ item }}={{ datastax_version }} update_cache=yes allow_unauthenticated=yes
   become: yes
   with_items:
@@ -30,11 +31,12 @@
     - dse-libhadoop2-client-native
 
 # This will restart Cassandra only if the configuration file has changed. See handlers/main.yaml
-- name: Copy Cassandra configuration file
+- name: Replace Cassandra configuration file
   template: src=cassandra.yaml dest=/etc/dse/cassandra/cassandra.yaml
   become: yes
 
 - name: Enable DSE Graph
+  when: enable_datastax_graph
   lineinfile:
     dest: /etc/default/dse
     regexp: '^GRAPH_ENABLED='
@@ -42,6 +44,7 @@
   become: yes
 
 - name: Enable Apache Spark
+  when: enable_datastax_spark
   lineinfile:
     dest: /etc/default/dse
     regexp: '^SPARK_ENABLED='

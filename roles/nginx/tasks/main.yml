@@ -10,6 +10,9 @@
 - name: Delete default nginx config for enabled site
   file: path=/etc/nginx/conf.d/default.conf state=absent
 
+- name: Delete default nginx config for enabled site
+  file: path=/etc/nginx/sites-enabled/default state=absent
+
 - name: Create HTTP nginx config
   template: src=drastic-web.nginx dest=/etc/nginx/conf.d/drastic_http.conf
   when: not https_mode

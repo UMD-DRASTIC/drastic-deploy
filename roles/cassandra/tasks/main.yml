@@ -4,33 +4,34 @@
 # This must be Oracle's Java, and also should use libjna for performance.
 ##############################################################################
 
-- name: Check directories
+- name: Check Cassandra data directories exist
   stat: path={{ item }}
   register: st
   with_items: '{{ cassandra_data_dirs }}'
 
-- name: Complain
+- name: Complain if Cassandra data directories do not exist
   fail: msg='Cassandra data directory {{ item.item }} does not exist or is not set properly'
   when: item.stat.isdir is not defined or not item.stat.isdir
   with_items: "{{ st.results }}"
 
-- name: Installation dependencies
-  apt: pkg=python-apt state=installed update_cache=yes force=yes
-  become: yes
+# - name: Install Python APT library (required for oracle-java8 installer)
+#   apt: pkg=python-apt state=installed update_cache=yes force=yes
+#   become: yes
 
-- name: Add PPA for Oracle Java 8
-  apt_repository: repo='ppa:webupd8team/java' state=present
-  become: yes
+# - name: Add PPA for Oracle Java 8
+#   apt_repository: repo='ppa:webupd8team/java' state=present
+#   become: yes
+#
+# - name: Select and agree to licence
+#   debconf: name='oracle-java8-installer' question='shared/accepted-oracle-license-v1-1' value='true' vtype='select'
+#   become: yes
 
-- name: Select and agree to licence
-  debconf: name='oracle-java8-installer' question='shared/accepted-oracle-license-v1-1' value='true' vtype='select'
-  become: yes
-
-- name: System dependencies
+- name: Install packaged dependencies
   become: yes
   apt: pkg={{ item }} state=installed update_cache=yes force=yes
   with_items:
-    - oracle-java8-installer
+    # - oracle-java8-installer
+    - openjdk-8-jdk
     - libjna-java
     - python-pip
     - git
@@ -58,18 +59,23 @@
 # Machine Environment for Cassandra
 ##############################################################################
 - name: Set Virtual Memory Resource Limit
-  lineinfile: dest=/etc/sysctl.conf line="vm.max_map_count = 1048575"
+  lineinfile:
+    dest: /etc/sysctl.conf
+    line: "vm.max_map_count = 1048575"
   become: yes
 
 - name: Enable PAM Session Limits
   lineinfile:
-    dest=/etc/pam.d/su
-    line="session    required   pam_limits.so"
-    insertafter="# session    required   pam_limits.so"
+    dest: /etc/pam.d/su
+    line: "session    required   pam_limits.so"
+    insertafter: "# session    required   pam_limits.so"
   become: yes
 
 - name: Remove Swap Space
-  lineinfile: dest=/etc/fstab state=absent regexp="  swap  "
+  lineinfile:
+    dest: /etc/fstab
+    state: absent
+    regexp: "  swap  "
   become: yes
 
 - name: Make resource limits effective
@@ -79,20 +85,26 @@
 # Directories were already checked to exist at the top. We don't want to create
 # new directories when remote volumes are not properly mounted yet.
 - name: Set ownership and permissions of Cassandra data directory
-  file: path={{ item }} state=directory mode=0755 owner=cassandra group=cassandra recurse=yes
+  file:
+    path: "{{ item }}"
+    state: directory
+    mode: 0755
+    owner: cassandra
+    group: cassandra
+    recurse: yes
   become: yes
   with_items: '{{ cassandra_data_dirs }}'
 
 - name: Create Cassandra log directory
-  file: path=/var/log/cassandra/log state=directory mode=0770 owner=cassandra
+  file:
+    path: /var/log/cassandra/log
+    state: directory
+    mode: 0770
+    owner: cassandra
   become: yes
 
 - name: Restart services
   meta: flush_handlers
-
-- name: Optionally install Cassandra snapshotter for S3/Glacier
-  include: S3_snapshotter.yml
-  when: use_S3_snapshotter
 
 - name: Pause for Cassandra to come online
   pause:
@@ -109,40 +121,3 @@
   until: cqlsh_ready.rc is defined and cqlsh_ready.rc == 0
   delay: 10
   retries: 5
-  # environment:
-  #  CQLSH_NO_BUNDLED: TRUE
-
-- debug:
-    msg: "ansible_hostname is {{ ansible_hostname }}, ansible_nodename is {{ ansible_nodename }}"
-  tags: graph
-
-- name: Configure gremlin-console to connect to correct IP
-  template:
-    src: gremlin-console-remote.yaml
-    dest: /etc/dse/graph/gremlin-console/conf/remote.yaml
-    owner: cassandra
-    group: cassandra
-  become: yes
-  tags: graph
-  when: ansible_hostname == cassandra_seed_server
-
-- name: Place graph and schema creation into gremlin-console init script
-  copy: src=mydse-init.groovy dest=/etc/dse/graph/gremlin-console/scripts/dse-init.groovy owner=cassandra group=cassandra
-  become: yes
-  tags: graph
-  when: ansible_hostname == cassandra_seed_server
-
-- name: Start DSE gremlin-console to initialize drastic graph
-  shell: |
-    dse gremlin-console &
-    sleep 60
-    kill %1
-  ignore_errors: yes
-  tags: graph
-  when: ansible_hostname == cassandra_seed_server
-
-- name: Reset gremlin-console init script to usual
-  copy: src=dse-init.groovy dest=/etc/dse/graph/gremlin-console/scripts/dse-init.groovy owner=cassandra group=cassandra
-  become: yes
-  tags: graph
-  when: ansible_hostname == cassandra_seed_server

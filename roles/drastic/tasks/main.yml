@@ -43,7 +43,7 @@
 
 - name: Copy local drastic lib sources
   synchronize:
-    src: ../drastic/
+    src: ../../../drastic/
     dest: "{{ install_dir }}/drastic"
     recursive: yes
   when: deploy_local_code

@@ -1,0 +1,34 @@
+- debug:
+    msg: "ansible_hostname is {{ ansible_hostname }}, ansible_nodename is {{ ansible_nodename }}"
+  tags: graph
+
+- name: Configure gremlin-console to connect to correct IP
+  template:
+    src: gremlin-console-remote.yaml
+    dest: /etc/dse/graph/gremlin-console/conf/remote.yaml
+    owner: cassandra
+    group: cassandra
+  become: yes
+  tags: graph
+  when: ansible_hostname == cassandra_seed_server
+
+- name: Place graph and schema creation into gremlin-console init script
+  copy: src=mydse-init.groovy dest=/etc/dse/graph/gremlin-console/scripts/dse-init.groovy owner=cassandra group=cassandra
+  become: yes
+  tags: graph
+  when: ansible_hostname == cassandra_seed_server
+
+- name: Start DSE gremlin-console to initialize drastic graph
+  shell: |
+    dse gremlin-console &
+    sleep 60
+    kill %1
+  ignore_errors: yes
+  tags: graph
+  when: ansible_hostname == cassandra_seed_server
+
+- name: Reset gremlin-console init script to usual
+  copy: src=dse-init.groovy dest=/etc/dse/graph/gremlin-console/scripts/dse-init.groovy owner=cassandra group=cassandra
+  become: yes
+  tags: graph
+  when: ansible_hostname == cassandra_seed_server

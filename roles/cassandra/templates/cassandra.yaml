@@ -343,7 +343,7 @@ seed_provider:
       parameters:
           # seeds is actually a comma-delimited list of addresses.
           # Ex: "<ip1>,<ip2>,<ip3>"
-          - seeds: "{{ hostvars[cassandra_seed_server]['ansible_' ~ hostvars[cassandra_seed_server]['cassandra_interface']]['ipv4']['address'] }}"
+          - seeds: "{{ cassandra_seed_server }}"
 {% else %}
 seed_provider:
     # Addresses of hosts that are deemed contact points.
