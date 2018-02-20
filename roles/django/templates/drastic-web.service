@@ -4,7 +4,7 @@ After=network.target
 
 [Service]
 User=drastic
-Group=nogroup
+Group=drastic
 Restart=on-failure
 EnvironmentFile={{ install_dir }}/drastic-env
 WorkingDirectory={{ install_dir }}/web/project

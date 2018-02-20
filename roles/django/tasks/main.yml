@@ -141,7 +141,7 @@
   tags: init
 
 - name: Start the Drastic web service
-  service: name=drastic-web state=restarted enabled=yes
+  systemd: name=drastic-web state=restarted enabled=yes daemon-reload=yes
   when: ansible_connection != 'docker'
   register: drastic-web-installed
   tags: code
