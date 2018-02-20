@@ -1,10 +1,9 @@
 #!/bin/sh
 env
-while ! nc -w 1 -z $CASSANDRA_SEED_SERVER 9042; do
+while ! timeout 1 bash -c "</dev/tcp/${CASSANDRA_SEED_SERVER}/9042"; do
   sleep 0.1;
 done;
-echo "Seed server $CASSANDRA_SEED_SERVER is up, waiting 10 secs for Voltron.."
-sleep 10
+echo "Seed server $CASSANDRA_SEED_SERVER is listening, creating keyspace.."
 
 {{ install_dir }}/web/bin/python - <<DOC
 from cassandra.cluster import Cluster
@@ -20,7 +19,10 @@ print('drastic KEYSPACE CREATED')
 DOC
 
 sleep 2
+echo "Collecting static files for Django.."
 python {{ install_dir }}/web/project/manage.py collectstatic --noinput
+echo "Creating DRAS-TIC tables.."
 drastic-admin create
 sleep 2
+echo "Creating the root collection.."
 drastic-admin root-collection-create

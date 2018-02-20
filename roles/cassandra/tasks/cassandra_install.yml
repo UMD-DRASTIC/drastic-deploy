@@ -1,17 +1,29 @@
 - name: Install Cassandra Python driver and CQLSH tool
   pip: name=cassandra-driver
-
-- name: Add Cassandra APT Repository
-  apt_repository: repo="deb http://www.apache.org/dist/cassandra/debian 311x main" state=present
   become: yes
 
-- name: Add Cassandra APT Key
-  apt_key: url=https://www.apache.org/dist/cassandra/KEYS state=present
+- name: Install Cassandra (Apt)
   become: yes
+  block:
+  - apt_repository: repo="deb http://www.apache.org/dist/cassandra/debian 311x main" state=present
+  - apt_key: url=https://www.apache.org/dist/cassandra/KEYS state=present
+  - apt: package=cassandra update_cache=yes allow_unauthenticated=yes
+  when: ansible_distribution == 'Debian' or ansible_distribution == 'Ubuntu'
 
-- name: Install Cassandra package
-  apt: package=cassandra update_cache=yes allow_unauthenticated=yes
+- name: Install Cassandra (Yum)
   become: yes
+  block:
+  - yum_repository:
+      name: cassandra
+      description: Apache Cassandra
+      baseurl: https://www.apache.org/dist/cassandra/redhat/311x/
+      gpgcheck: no
+      repo_gpgcheck: no
+      gpgkey: https://www.apache.org/dist/cassandra/KEYS
+  - yum:
+      name: cassandra
+      update_cache: yes
+  when: ansible_distribution == 'CentOS' or ansible_distribution == 'Red Hat Enterprise Linux'
 
 # This will restart Cassandra only if the configuration file has changed. See handlers/main.yaml
 - name: Copy Cassandra configuration file
@@ -19,9 +31,21 @@
   notify:
     - Restart Cassandra
   become: yes
+  when: ansible_distribution == 'Debian' or ansible_distribution == 'Ubuntu'
+
+- name: Copy Cassandra configuration file
+  template: src=cassandra.yaml dest=/etc/cassandra/conf/cassandra.yaml
+  notify:
+    - Restart Cassandra
+  become: yes
+  when: ansible_distribution == 'CentOS' or ansible_distribution == 'Red Hat Enterprise Linux'
 
 - name: Create Cassandra cache directory
   file: path=/var/lib/cassandra/saved_caches state=directory mode=0775 owner=cassandra group=cassandra
+  become: yes
+
+- name: Create Cassandra cache directory
+  file: path=/var/lib/cassandra/hints state=directory mode=0775 owner=cassandra group=cassandra
   become: yes
 
 - name: Create Cassandra commitlog directory

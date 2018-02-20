@@ -28,7 +28,7 @@
 
 - name: Install packaged dependencies
   become: yes
-  apt: pkg={{ item }} state=installed update_cache=yes force=yes
+  package: name={{ item }} state=latest
   with_items:
     # - oracle-java8-installer
     - openjdk-8-jdk
@@ -42,6 +42,26 @@
     - libev-dev
     - build-essential
     - python-dev
+  when: ansible_distribution == 'Debian' or ansible_distribution == 'Ubuntu'
+
+- yum: name=epel-release state=present
+  become: yes
+  when: ansible_distribution == 'CentOS' or ansible_distribution == 'Red Hat Enterprise Linux'
+- name: Install packaged dependencies
+  become: yes
+  package: name={{ item }} state=latest
+  with_items:
+    - java-1.8.0-openjdk
+    - jna
+    - python-pip
+    - git
+    - curl
+    - ntp
+    # For client machine ...
+    - libev
+    - libev-devel
+    - python-devel
+  when: ansible_distribution == 'CentOS' or ansible_distribution == 'Red Hat Enterprise Linux'
 
 ##############################################################################
 # Cassandra or Datastax Enterprise
@@ -105,19 +125,3 @@
 
 - name: Restart services
   meta: flush_handlers
-
-- name: Pause for Cassandra to come online
-  pause:
-    seconds: "{{ cassandra_restart_seconds|int }}"
-
-- name: Create drastic keyspace as Cassandra becomes available
-  command: |
-    cqlsh \
-    --connect-timeout=30 \
-    --request-timeout=30 \
-    {{ hostvars[inventory_hostname]['ansible_' ~ cassandra_interface]['ipv4']['address'] }} \
-    -e "CREATE KEYSPACE IF NOT EXISTS drastic WITH replication = {'class': 'SimpleStrategy', 'replication_factor': {{ cassandra_replication_factor }} };"
-  register: cqlsh_ready
-  until: cqlsh_ready.rc is defined and cqlsh_ready.rc == 0
-  delay: 10
-  retries: 5

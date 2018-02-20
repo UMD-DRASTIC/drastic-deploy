@@ -15,11 +15,9 @@
 - name: Create log file directory
   file: path="{{ install_dir }}/log/" state=directory owner=drastic
 
-- name: update apt-cache
-  apt: update_cache=yes # upgrade=full install_recommends=no
-
-- name: Install useful packages
-  apt: pkg={{ item }} state=installed install_recommends=no
+- name: Install Apt packages
+  apt: pkg={{ item }} state=installed install_recommends=no update_cache=yes
+  when: ansible_distribution == 'Debian' or ansible_distribution == 'Ubuntu'
   with_items:
     - build-essential
     - git
@@ -27,8 +25,22 @@
     - python-setuptools
     - python-virtualenv
 
+- name: Install Yum packages
+  block:
+    - yum: name=epel-release state=present
+      become: yes
+    - yum: name={{ item }} state=latest
+      with_items:
+        - "@Development tools"
+        - git
+        - python-pip
+        - python-setuptools
+        - python-virtualenv
+  when: ansible_distribution == 'CentOS' or ansible_distribution == 'Red Hat Enterprise Linux'
+
 - name: Ensures /var/www/.python-eggs dir exists
   file: path=/var/www/.python-eggs state=directory owner=www-data
+  when: ansible_distribution == 'Debian' or ansible_distribution == 'Ubuntu'
 
 - name: Clone git repo
   git:

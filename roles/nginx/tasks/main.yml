@@ -4,8 +4,17 @@
 ##############################################################################
 
 - name: Install Nginx package
-  apt: pkg=nginx state=present update_cache=yes
+  package: name=nginx state=present
   when: ansible_connection != 'docker'
+
+- name: Allow httpd to connect upstream on SELinux
+  become: yes
+  become_user: root
+  when: ansible_distribution == 'CentOS' or ansible_distribution == 'Red Hat Enterprise Linux'
+  block:
+    - command: setsebool -P httpd_can_network_relay 1
+    - command: setsebool -P httpd_can_network_connect 1
+  tags: init
 
 - name: Delete default nginx config for enabled site
   file: path=/etc/nginx/conf.d/default.conf state=absent
@@ -13,11 +22,14 @@
 - name: Delete default nginx config for enabled site
   file: path=/etc/nginx/sites-enabled/default state=absent
 
-- name: Create HTTP nginx config
+- name: Create Nginx main config
+  copy: src=nginx.conf dest=/etc/nginx/nginx.conf
+
+- name: Create DRAS-TIC HTTP nginx config
   template: src=drastic-web.nginx dest=/etc/nginx/conf.d/drastic_http.conf
   when: not https_mode
 
-- name: Create HTTPS nginx config
+- name: Create DRAS-TIC HTTPS nginx config
   template: src=drastic-web-ssl.nginx dest=/etc/nginx/conf.d/drastic_https.conf
   when: https_mode
 
@@ -39,10 +51,7 @@
   when: https_mode
 
 - name: install packages for drastic web-ui
-  apt: pkg={{ item }} state=installed update_cache=yes
-  with_items:
-    - expect
-    - python-pip
+  package: name=python-pip state=installed
   when: https_mode and ((ssl_certificate.stat.exists == False) or (ssl_key.stat.exists == False))
 
 - name: Install Global Python modules
@@ -63,10 +72,6 @@
       Common Name (.*): "Team Drastic"
       Email (.*): "jansen@umd.edu"
   when: https_mode and ((ssl_certificate.stat.exists == False) or (ssl_key.stat.exists == False))
-
-- name: Copy nginx config for https mode
-  file: src=/etc/nginx/sites-available/drastic_https dest=/etc/nginx/sites-enabled/drastic_https state=link
-  when: https_mode
 
 - name: Start nginx
   service: name=nginx state=restarted enabled=yes

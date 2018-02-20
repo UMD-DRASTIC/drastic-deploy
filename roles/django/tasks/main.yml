@@ -14,26 +14,27 @@
     group: drastic
     mode: 0755
 
-- name: update apt-cache
-  apt: update_cache=yes cache_valid_time="{{ 60*60*24 }}"
-  when: ansible_connection != 'docker'
+- name: Install Apt Packages
+  block:
+  - apt: update_cache=yes cache_valid_time="{{ 60*60*24 }}"
+  - apt: name={{ item }} state=present
+    with_items:
+      - build-essential
+      - virtualenv
+      - netcat
+      - python-dev
+      - libldap2-dev
+      - libsasl2-dev
+      - libssl-dev
+  when: ansible_connection != 'docker' and ansible_distribution == 'Debian' or ansible_distribution == 'Ubuntu'
 
-- name: install packages for drastic web-ui
-  apt: pkg={{ item }} state=installed
+- name: Install Yum Packages
+  yum: name={{ item }} state=present
   with_items:
-    - virtualenv
-    - netcat
-
-- name: Install packages for LDAP
-  apt: pkg={{ item }} state=present
-  with_items:
-    #- build-essential
-    - python-dev
-    - libldap2-dev
-    - libsasl2-dev
-    - libssl-dev
-
-# - include_tasks: localpython.yml
+    - nc
+    - python-devel
+    - openldap-devel
+  when: ansible_distribution == 'CentOS' or ansible_distribution == 'Red Hat Enterprise Linux'
 
 - name: Manually create the webapp virtualenv
   command: virtualenv -p python2.7 "{{ install_dir }}/web" creates="{{ install_dir }}/web"
@@ -54,6 +55,15 @@
     dest: "{{ install_dir }}/web/project"
     recursive: yes
   when: deploy_local_code
+  tags: code
+
+- name: Upgrade pip
+  pip:
+    name:
+      - pip
+      - setuptools
+    state: latest
+    virtualenv: "{{ install_dir }}/web"
   tags: code
 
 - name: Install requirements
@@ -124,7 +134,7 @@
   command: apt-get clean
 
 - name: Initialize the Drastic database (approx. 2 minutes)
-  shell: ". /etc/profile.d/drastic-env.sh; {{ install_dir }}/entrypoint.sh {{ install_dir }}/django_init.sh &> {{ install_dir }}/init.log"
+  shell: "env $(cat /opt/drastic/drastic-env | xargs) {{ install_dir }}/entrypoint.sh {{ install_dir }}/django_init.sh"
   when: ansible_connection != 'docker'
   become: yes
   become_user: drastic
