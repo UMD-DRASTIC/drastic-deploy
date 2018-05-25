@@ -8,10 +8,10 @@ The primary way to deploy Drastic, either to a cluster or to local virtual machi
 
 # Documentation
 
-* [AGPL 3 License](https://github.com/drastic-deploy/tree/master/LICENSE)
-* [Install Guide](https://github.com/drastic-deploy/tree/master/docs/INSTALL.md)
-* [Developer Guide](https://github.com/drastic-deploy/tree/master/docs/CONTRIBUTING.md)
-* [All Documentation](https://github.com/drastic-deploy/tree/master/docs/)
+* [AGPL 3 License](https://github.com/UMD-DRASTIC/drastic-deploy/tree/master/LICENSE)
+* [Install Guide](https://github.com/UMD-DRASTIC/drastic-deploy/tree/master/docs/INSTALL.md)
+* [Developer Guide](https://github.com/UMD-DRASTIC/drastic-deploy/tree/master/docs/CONTRIBUTING.md)
+* [All Documentation](https://github.com/UMD-DRASTIC/drastic-deploy/tree/master/docs/)
 
 # Community
 
